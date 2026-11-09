@@ -41,7 +41,22 @@ export function TicketDetail({ id, presentation = 'page' }: TicketDetailProps) {
   const { data: ticket, isPending, error, refetch } = useTicket(id)
   const layout = layoutRecipe({ presentation })
 
-  if (isPending) return <DetailSkeleton presentation={presentation} layout={layout} />
+  // Every branch renders ViewFrame at the root, so in a drawer the same Drawer stays
+  // mounted when loading finishes; swapping the root type would remount it and replay
+  // the slide-in animation.
+  if (isPending) {
+    return (
+      <ViewFrame
+        presentation={presentation}
+        title="Loading ticket…"
+        heading={<SkeletonText width="min(28rem, 80%)" />}
+        back={BACK}
+        actions={<Skeleton className={css({ h: 'control.lg', w: '40', borderRadius: 'sm' })} />}
+      >
+        <DetailSkeleton layout={layout} />
+      </ViewFrame>
+    )
+  }
 
   if (error) {
     const notFound = error instanceof ApiError && error.isNotFound
@@ -157,47 +172,39 @@ function StatusSelect({ ticket }: { ticket: Ticket }) {
 
 const badgeSkeleton = css({ h: 'control.sm', w: '20', borderRadius: 'full' })
 
-/** Same frame, cards and rows as the loaded ticket, with text-height bars. */
-function DetailSkeleton({ presentation, layout }: { presentation: Presentation; layout: string }) {
+/** Same cards and rows as the loaded ticket, with text-height bars. */
+function DetailSkeleton({ layout }: { layout: string }) {
   return (
-    <ViewFrame
-      presentation={presentation}
-      title="Loading ticket…"
-      heading={<SkeletonText width="min(28rem, 80%)" />}
-      back={BACK}
-      actions={<Skeleton className={css({ h: 'control.lg', w: '40', borderRadius: 'sm' })} />}
-    >
-      <div className={layout} aria-busy="true" aria-label="Loading ticket">
-        <Card className={body}>
-          <div className={badges}>
-            <Skeleton className={badgeSkeleton} />
-            <Skeleton className={badgeSkeleton} />
+    <div className={layout} aria-busy="true" aria-label="Loading ticket">
+      <Card className={body}>
+        <div className={badges}>
+          <Skeleton className={badgeSkeleton} />
+          <Skeleton className={badgeSkeleton} />
+        </div>
+        <h2 className={label}>Description</h2>
+        <p className={description}>
+          <SkeletonText />
+          <SkeletonText width="70%" />
+        </p>
+      </Card>
+      <Card>
+        <dl className={facts}>
+          <div>
+            <dt className={label}>Status</dt>
+            <dd>
+              <Skeleton className={css({ h: 'control.xl', w: 'full', borderRadius: 'md' })} />
+            </dd>
           </div>
-          <h2 className={label}>Description</h2>
-          <p className={description}>
-            <SkeletonText />
-            <SkeletonText width="70%" />
-          </p>
-        </Card>
-        <Card>
-          <dl className={facts}>
-            <div>
-              <dt className={label}>Status</dt>
+          {['Customer', 'Created', 'Last updated', 'Ticket ID'].map((term) => (
+            <div key={term}>
+              <dt className={label}>{term}</dt>
               <dd>
-                <Skeleton className={css({ h: 'control.xl', w: 'full', borderRadius: 'md' })} />
+                <SkeletonText width="60%" />
               </dd>
             </div>
-            {['Customer', 'Created', 'Last updated', 'Ticket ID'].map((term) => (
-              <div key={term}>
-                <dt className={label}>{term}</dt>
-                <dd>
-                  <SkeletonText width="60%" />
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </Card>
-      </div>
-    </ViewFrame>
+          ))}
+        </dl>
+      </Card>
+    </div>
   )
 }
