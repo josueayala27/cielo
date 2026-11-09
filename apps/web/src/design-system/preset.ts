@@ -60,7 +60,6 @@ export const cieloPreset = definePreset({
           red: { 500: { value: '#ef4444' } },
         },
         gradients: {
-          horizon: { value: 'linear-gradient(165deg, #bae6fd, #38bdf8 45%, #0369a1)' },
           // Soft top highlight laid over filled buttons and tiles.
           sheen: { value: 'linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 63.53%)' },
         },
