@@ -30,7 +30,7 @@ export function createApp({ createRepository = (env) => new D1TicketRepository(e
     '/api/*',
     cors({
       origin: (origin, c) => {
-        const allowed = [...LOCAL_ORIGINS, ...(c.env.CORS_ORIGINS ?? '').split(',').map((o) => o.trim())]
+        const allowed = [...LOCAL_ORIGINS, ...((c.env as Bindings).CORS_ORIGINS ?? '').split(',').map((o) => o.trim())]
         return allowed.includes(origin) ? origin : null
       },
       allowMethods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
