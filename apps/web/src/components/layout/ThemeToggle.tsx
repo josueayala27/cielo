@@ -3,11 +3,10 @@
 import { Moon, Sun } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { IconButton } from '@/components/ui'
+import { THEME_STORAGE_KEY } from '@/lib/theme'
 
 type Theme = 'dark' | 'light'
 
-/** localStorage key read by the pre-paint script in the root layout. */
-export const THEME_STORAGE_KEY = 'cielo-theme'
 
 /** Switches between dark (default) and light, persisting the choice. */
 export function ThemeToggle() {

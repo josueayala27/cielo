@@ -3,7 +3,7 @@ import { Inter } from 'next/font/google'
 import type { ReactNode } from 'react'
 import { css } from 'styled-system/css'
 import { AppHeader } from '@/components/layout/AppHeader'
-import { THEME_STORAGE_KEY } from '@/components/layout/ThemeToggle'
+import { THEME_STORAGE_KEY } from '@/lib/theme'
 import './globals.css'
 import { Providers } from './providers'
 
