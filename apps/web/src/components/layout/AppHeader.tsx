@@ -9,7 +9,7 @@ const header = css({
   top: '0',
   zIndex: 'chrome',
   bg: 'bg.app/85',
-  backdropFilter: 'blur(12px)',
+  backdropFilter: '[blur(12px)]',
   borderBottomWidth: '1px',
   borderColor: 'border.default',
 })

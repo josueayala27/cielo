@@ -9,7 +9,7 @@ const spinner = css({
   borderWidth: '2px',
   borderColor: 'currentColor',
   borderRightColor: 'transparent',
-  animation: 'spin 0.7s linear infinite',
+  animation: 'spin',
 })
 
 /** Small indeterminate progress indicator that inherits the text colour. */

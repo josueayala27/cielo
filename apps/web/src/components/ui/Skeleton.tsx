@@ -1,6 +1,5 @@
 import { css, cx } from 'styled-system/css'
 
-// Fades in after a short delay so fast loads never flash, then sweeps slowly.
 const skeleton = css({
   display: 'block',
   borderRadius: 'sm',
@@ -10,7 +9,7 @@ const skeleton = css({
   gradientTo: 'bg.subtle',
   backgroundSize: '[200% 100%]',
   opacity: 0,
-  animation: 'skeleton-in token(durations.normal) 150ms forwards, skeleton-shimmer 1.6s linear infinite',
+  animation: 'skeleton',
 })
 
 /** Loading placeholder block. Size it with `className`. */

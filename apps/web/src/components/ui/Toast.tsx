@@ -48,7 +48,7 @@ const toast = css({
   boxShadow: 'popover',
   textStyle: 'body.sm',
   pointerEvents: 'auto',
-  animation: 'toast-in token(durations.normal) token(easings.emphasized)',
+  animation: 'toastIn',
   '&[data-tone=success] [data-part=icon]': { color: 'success.default' },
   '&[data-tone=danger] [data-part=icon]': { color: 'danger.default' },
 })

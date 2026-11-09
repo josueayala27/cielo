@@ -82,6 +82,14 @@ export const cieloPreset = definePreset({
           standard: { value: 'cubic-bezier(0.2, 0, 0, 1)' },
           emphasized: { value: 'cubic-bezier(0.3, 0, 0, 1)' },
         },
+        animations: {
+          fadeIn: { value: 'fade-in 140ms cubic-bezier(0.2, 0, 0, 1)' },
+          dialogIn: { value: 'dialog-in 220ms cubic-bezier(0.3, 0, 0, 1)' },
+          toastIn: { value: 'toast-in 220ms cubic-bezier(0.3, 0, 0, 1)' },
+          spin: { value: 'spin 0.7s linear infinite' },
+          // Fades in after a short delay so fast loads never flash, then sweeps slowly.
+          skeleton: { value: 'skeleton-in 220ms 150ms forwards, skeleton-shimmer 1.6s linear infinite' },
+        },
         zIndex: {
           chrome: { value: 20 },
           modal: { value: 30 },

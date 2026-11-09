@@ -9,14 +9,14 @@ const overlay = css({
   inset: '0',
   zIndex: 'modal',
   bg: 'bg.backdrop',
-  animation: 'fade-in token(durations.fast) token(easings.standard)',
+  animation: 'fadeIn',
 })
 const content = css({
   position: 'fixed',
   zIndex: 'modal',
-  top: '50%',
-  left: '50%',
-  translate: '-50% -50%',
+  top: '1/2',
+  left: '1/2',
+  translate: '[-50% -50%]',
   w: '[calc(100vw - 32px)]',
   maxW: '[420px]',
   maxH: '[calc(100dvh - 32px)]',
@@ -30,7 +30,7 @@ const content = css({
   borderRadius: 'lg',
   boxShadow: 'popover',
   outline: 'none',
-  animation: 'dialog-in token(durations.normal) token(easings.emphasized)',
+  animation: 'dialogIn',
 })
 const titleClass = css({ textStyle: 'body.title' })
 const descriptionClass = css({ textStyle: 'body.sm', color: 'fg.muted' })
