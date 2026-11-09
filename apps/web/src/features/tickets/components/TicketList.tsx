@@ -5,7 +5,7 @@ import { Inbox, Plus, SearchX, WifiOff } from 'lucide-react'
 import Link from 'next/link'
 import { css } from 'styled-system/css'
 import { Button, Card, EmptyState, Skeleton, buttonRecipe } from '@/components/ui'
-import type { ApiError } from '@/lib/api-client'
+import { ApiError } from '@/lib/api-client'
 import { formatDate } from '@/lib/format'
 import { PriorityBadge, StatusBadge } from './TicketBadges'
 
@@ -51,14 +51,14 @@ const cardItem = css({
   _last: { borderBottomWidth: '0' },
 })
 const cardMeta = css({ display: 'flex', alignItems: 'center', gap: '2', flexWrap: 'wrap', textStyle: 'ui.sm', color: 'fg.muted' })
-const listCard = css({ overflow: 'hidden', transition: 'opacity token(durations.fast)', '&[aria-busy=true]': { opacity: 0.6 } })
+const listCard = css({ overflow: 'hidden', transitionProperty: 'opacity', transitionDuration: 'fast', '&[aria-busy=true]': { opacity: 0.6 } })
 
 interface TicketListProps {
   tickets: Ticket[] | undefined
   isPending: boolean
   /** A newer page is loading while the previous one stays visible. */
   isFetching: boolean
-  error: ApiError | null
+  error: Error | null
   hasFilters: boolean
   onRetry: () => void
   onClearFilters: () => void
@@ -77,7 +77,7 @@ export function TicketList({ tickets, isPending, isFetching, error, hasFilters, 
         <EmptyState
           tone="danger"
           icon={WifiOff}
-          title={error.isNetworkError ? 'You appear to be offline' : 'Could not load tickets'}
+          title={error instanceof ApiError && error.isNetworkError ? 'You appear to be offline' : 'Could not load tickets'}
           description={error.message}
           actions={<Button onClick={onRetry}>Try again</Button>}
         />
@@ -177,8 +177,8 @@ function ListSkeleton() {
     <Card className={css({ p: '4', display: 'flex', flexDirection: 'column', gap: '4' })} aria-busy="true" aria-label="Loading tickets">
       {Array.from({ length: 6 }, (_, i) => (
         <div key={i} className={css({ display: 'flex', gap: '4', alignItems: 'center' })}>
-          <Skeleton className={css({ h: '4', flex: '2' })} />
-          <Skeleton className={css({ h: '4', flex: '1.5', hideBelow: 'md' })} />
+          <Skeleton className={css({ h: '4', flex: '[2]' })} />
+          <Skeleton className={css({ h: '4', flex: '[1.5]', hideBelow: 'md' })} />
           <Skeleton className={css({ h: '5', w: '16', borderRadius: 'full' })} />
           <Skeleton className={css({ h: '5', w: '20', borderRadius: 'full', hideBelow: 'md' })} />
         </div>
