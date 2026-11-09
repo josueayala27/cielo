@@ -72,11 +72,12 @@ export function useUpdateTicket(id: string) {
   return useMutation({ mutationFn: (changes: UpdateTicket) => ticketsApi.update(id, changes), onSuccess: (ticket) => sync(ticket) })
 }
 
-/** Changes a ticket's status from the board. Lists and stats refetch before it resolves. */
+/** Saves a board move (status and/or position). Lists and stats refetch before it resolves. */
 export function useMoveTicket() {
   const sync = useSyncAfterWrite()
   return useMutation({
-    mutationFn: ({ id, status }: { id: string; status: TicketStatus }) => ticketsApi.update(id, { status }),
+    mutationFn: ({ id, status, position }: { id: string; status: TicketStatus; position: number }) =>
+      ticketsApi.update(id, { status, position }),
     onSuccess: (ticket) => sync(ticket),
   })
 }
