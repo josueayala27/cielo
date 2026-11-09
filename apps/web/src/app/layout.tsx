@@ -26,7 +26,11 @@ const themeScript = `try{var t=localStorage.getItem('${THEME_STORAGE_KEY}');if(t
 
 const main = css({ maxW: 'content', mx: 'auto', px: '4', py: { base: '6', md: '10' }, display: 'flex', flexDirection: 'column', gap: '6' })
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+/**
+ * Root layout. `drawer` is a parallel route slot: in-app links to a ticket, the new-ticket
+ * form or the edit form are intercepted there and open as a drawer over the current page.
+ */
+export default function RootLayout({ children, drawer }: { children: ReactNode; drawer: ReactNode }) {
   return (
     <html lang="en" className={inter.variable} suppressHydrationWarning>
       <head>
@@ -36,6 +40,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <Providers>
           <AppHeader />
           <main className={main}>{children}</main>
+          {drawer}
         </Providers>
       </body>
     </html>
