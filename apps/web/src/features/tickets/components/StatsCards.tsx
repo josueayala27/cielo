@@ -76,7 +76,7 @@ export function StatsCards({ activeStatus, onSelectStatus }: StatsCardsProps) {
           >
             <span className={tileHead}>
               {label}
-              {status ? <StatusIcon status={status} size={16} /> : <Inbox size={16} className={totalIcon} aria-hidden />}
+              {status ? <StatusIcon status={status} size={16} decorative /> : <Inbox size={16} className={totalIcon} aria-hidden />}
             </span>
             <span className={value}>{isPending ? <SkeletonText width="2ch" /> : (count ?? 0)}</span>
           </Card>

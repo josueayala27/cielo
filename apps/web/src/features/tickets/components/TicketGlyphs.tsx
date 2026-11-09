@@ -12,9 +12,11 @@ const statusColor: Record<TicketStatus, string> = {
  * Status glyph: an empty ring (open), a half-filled ring (in progress) or a filled
  * check (resolved), so the state reads from shape as well as colour.
  */
-export function StatusIcon({ status, size = 14 }: { status: TicketStatus; size?: number }) {
+export function StatusIcon({ status, size = 14, decorative = false }: { status: TicketStatus; size?: number; decorative?: boolean }) {
+  // Decorative when the status name is already written next to it.
+  const a11y = decorative ? { 'aria-hidden': true } : { role: 'img', 'aria-label': STATUS_META[status].label }
   return (
-    <svg width={size} height={size} viewBox="0 0 14 14" className={statusColor[status]} role="img" aria-label={STATUS_META[status].label}>
+    <svg width={size} height={size} viewBox="0 0 14 14" className={statusColor[status]} {...a11y}>
       {status === 'resolved' ? (
         <>
           <circle cx="7" cy="7" r="6.5" fill="currentColor" />
