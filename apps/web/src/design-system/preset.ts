@@ -17,6 +17,7 @@ export const cieloPreset = definePreset({
         'toast-in': { from: { opacity: 0, transform: 'translateY(8px) scale(0.98)' }, to: { opacity: 1, transform: 'none' } },
         'dialog-in': { from: { opacity: 0, transform: 'scale(0.96)' }, to: { opacity: 1, transform: 'scale(1)' } },
         'fade-in': { from: { opacity: 0 }, to: { opacity: 1 } },
+        'drawer-in': { from: { transform: 'translateX(100%)' }, to: { transform: 'translateX(0)' } },
       },
       tokens: {
         fonts: {
@@ -88,6 +89,7 @@ export const cieloPreset = definePreset({
         animations: {
           fadeIn: { value: 'fade-in 140ms cubic-bezier(0.2, 0, 0, 1)' },
           dialogIn: { value: 'dialog-in 220ms cubic-bezier(0.3, 0, 0, 1)' },
+          drawerIn: { value: 'drawer-in 260ms cubic-bezier(0.3, 0, 0, 1)' },
           toastIn: { value: 'toast-in 220ms cubic-bezier(0.3, 0, 0, 1)' },
           spin: { value: 'spin 0.7s linear infinite' },
           // Fades in after a short delay so fast loads never flash, then sweeps slowly.
