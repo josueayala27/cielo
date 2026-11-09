@@ -88,6 +88,7 @@ function TicketListSection({ filters, setFilters, reset }: TicketListSectionProp
         hasFilters={Boolean(filters.search || filters.status || filters.priority)}
         onRetry={() => list.refetch()}
         onClearFilters={reset}
+        skeletonRows={LIST_PAGE_SIZE}
       />
       {page && page.total > 0 && (
         <Pagination page={page.page} totalPages={page.totalPages} total={page.total} limit={page.limit} onPageChange={(next) => setFilters({ page: next })} />

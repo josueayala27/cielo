@@ -12,7 +12,7 @@ import { Save } from 'lucide-react'
 import { useForm, type FieldPath } from 'react-hook-form'
 import type { z } from 'zod'
 import { css } from 'styled-system/css'
-import { Button, Card, FormField, Input, Select, Textarea } from '@/components/ui'
+import { Button, Card, FormField, Input, Select, Skeleton, Textarea } from '@/components/ui'
 import { ApiError } from '@/lib/api-client'
 import { PRIORITY_META, STATUS_META } from '../presentation'
 
@@ -153,4 +153,34 @@ function pickInput({ title, description, customerName, customerEmail, priority, 
 /** Keeps only the fields the user changed, so a PATCH never overwrites untouched data. */
 function onlyDirty(values: TicketInput, dirty: Partial<Record<keyof FormValues, boolean | undefined>>): Partial<TicketInput> {
   return Object.fromEntries(Object.entries(values).filter(([key]) => dirty[key as keyof FormValues])) as Partial<TicketInput>
+}
+
+const inputSkeleton = css({ h: 'control.xl', w: 'full', borderRadius: 'md' })
+
+/** Placeholder with the form's exact layout, shown while the edited ticket loads. */
+export function TicketFormSkeleton() {
+  const field = (id: string, label: string, className = inputSkeleton) => (
+    <FormField id={id} label={label}>
+      {() => <Skeleton className={className} />}
+    </FormField>
+  )
+  return (
+    <Card aria-busy="true" aria-label="Loading ticket">
+      <div className={form}>
+        {field('title', 'Title')}
+        {field('description', 'Description', css({ h: '[128px]', w: 'full', borderRadius: 'md' }))}
+        <div className={twoColumns}>
+          {field('customerName', 'Customer name')}
+          {field('customerEmail', 'Customer email')}
+        </div>
+        <div className={twoColumns}>
+          {field('priority', 'Priority')}
+          {field('status', 'Status')}
+        </div>
+        <div className={actions}>
+          <Skeleton className={css({ h: 'control.xl', w: '48', borderRadius: 'md' })} />
+        </div>
+      </div>
+    </Card>
+  )
 }

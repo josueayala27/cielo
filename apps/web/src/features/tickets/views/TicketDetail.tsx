@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 import { css } from 'styled-system/css'
 import { BackLink } from '@/components/layout/BackLink'
 import { PageHeader } from '@/components/layout/PageHeader'
-import { Button, Card, EmptyState, Select, Skeleton, buttonRecipe, useToast } from '@/components/ui'
+import { Button, Card, EmptyState, Select, Skeleton, SkeletonText, buttonRecipe, useToast } from '@/components/ui'
 import { ApiError } from '@/lib/api-client'
 import { formatDateTime } from '@/lib/format'
 import { DeleteTicketButton } from '../components/DeleteTicketButton'
@@ -139,19 +139,46 @@ function StatusSelect({ ticket }: { ticket: Ticket }) {
   )
 }
 
+const badgeSkeleton = css({ h: 'control.sm', w: '20', borderRadius: 'full' })
+
+/** Same header, cards and rows as the loaded page, with text-height bars. */
 function DetailSkeleton() {
   return (
-    <div aria-busy="true" aria-label="Loading ticket" className={css({ display: 'flex', flexDirection: 'column', gap: '6' })}>
-      <Skeleton className={css({ h: '8', w: '[60%]' })} />
+    <div aria-busy="true" aria-label="Loading ticket" className={css({ display: 'contents' })}>
+      <PageHeader
+        eyebrow={<BackLink href="/">All tickets</BackLink>}
+        title={<SkeletonText width="min(28rem, 80%)" />}
+        actions={<Skeleton className={css({ h: 'control.lg', w: '40', borderRadius: 'sm' })} />}
+      />
       <div className={layout}>
         <Card className={body}>
-          <Skeleton className={css({ h: '5', w: '40' })} />
-          <Skeleton className={css({ h: '4', w: 'full' })} />
-          <Skeleton className={css({ h: '4', w: '[80%]' })} />
+          <div className={badges}>
+            <Skeleton className={badgeSkeleton} />
+            <Skeleton className={badgeSkeleton} />
+          </div>
+          <h2 className={label}>Description</h2>
+          <p className={description}>
+            <SkeletonText />
+            <SkeletonText width="70%" />
+          </p>
         </Card>
-        <Card className={body}>
-          <Skeleton className={css({ h: '10', w: 'full' })} />
-          <Skeleton className={css({ h: '4', w: '[70%]' })} />
+        <Card>
+          <dl className={facts}>
+            <div>
+              <dt className={label}>Status</dt>
+              <dd>
+                <Skeleton className={css({ h: 'control.xl', w: 'full', borderRadius: 'md' })} />
+              </dd>
+            </div>
+            {['Customer', 'Created', 'Last updated', 'Ticket ID'].map((term) => (
+              <div key={term}>
+                <dt className={label}>{term}</dt>
+                <dd>
+                  <SkeletonText width="60%" />
+                </dd>
+              </div>
+            ))}
+          </dl>
         </Card>
       </div>
     </div>

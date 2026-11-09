@@ -4,7 +4,7 @@ import type { Ticket } from '@cielo/contracts'
 import { Inbox, Plus, SearchX, WifiOff } from 'lucide-react'
 import Link from 'next/link'
 import { css } from 'styled-system/css'
-import { Button, Card, EmptyState, Skeleton, buttonRecipe } from '@/components/ui'
+import { Button, Card, EmptyState, Skeleton, SkeletonText, buttonRecipe } from '@/components/ui'
 import { ApiError } from '@/lib/api-client'
 import { formatDate } from '@/lib/format'
 import { PriorityBadge, StatusBadge } from './TicketBadges'
@@ -27,6 +27,7 @@ const table = css({
   '& tbody tr': { transitionProperty: 'background', transitionDuration: 'fast', _hover: { bg: 'bg.hover' } },
   '& tbody tr:last-child td': { borderBottomWidth: '0' },
 })
+const titleText = css({ display: 'block', fontWeight: 'medium' })
 const titleLink = css({
   color: 'fg.default',
   fontWeight: 'medium',
@@ -62,14 +63,16 @@ interface TicketListProps {
   hasFilters: boolean
   onRetry: () => void
   onClearFilters: () => void
+  /** Placeholder rows while loading; use the page size so the height does not change. */
+  skeletonRows?: number
 }
 
 /**
  * Ticket listing: a table from `md` up and stacked cards on phones. Handles the loading,
  * error and both empty states (no tickets at all vs. no match for the filters).
  */
-export function TicketList({ tickets, isPending, isFetching, error, hasFilters, onRetry, onClearFilters }: TicketListProps) {
-  if (isPending) return <ListSkeleton />
+export function TicketList({ tickets, isPending, isFetching, error, hasFilters, onRetry, onClearFilters, skeletonRows = 10 }: TicketListProps) {
+  if (isPending) return <ListSkeleton rows={skeletonRows} />
 
   if (error && !tickets) {
     return (
@@ -114,15 +117,7 @@ export function TicketList({ tickets, isPending, isFetching, error, hasFilters, 
   return (
     <Card className={listCard} aria-busy={isFetching}>
       <table className={table}>
-        <thead>
-          <tr>
-            <th scope="col">Title</th>
-            <th scope="col">Customer</th>
-            <th scope="col">Priority</th>
-            <th scope="col">Status</th>
-            <th scope="col">Created</th>
-          </tr>
-        </thead>
+        <TableHead />
         <tbody>
           {tickets.map((ticket) => (
             <tr key={ticket.id} className={row}>
@@ -171,18 +166,78 @@ export function TicketList({ tickets, isPending, isFetching, error, hasFilters, 
   )
 }
 
-/** Placeholder rows shown on first load. */
-function ListSkeleton() {
+/** Column headers shared by the table and its skeleton. */
+function TableHead() {
   return (
-    <Card className={css({ p: '4', display: 'flex', flexDirection: 'column', gap: '4' })} aria-busy="true" aria-label="Loading tickets">
-      {Array.from({ length: 6 }, (_, i) => (
-        <div key={i} className={css({ display: 'flex', gap: '4', alignItems: 'center' })}>
-          <Skeleton className={css({ h: '4', flex: '[2]' })} />
-          <Skeleton className={css({ h: '4', flex: '[1.5]', hideBelow: 'md' })} />
-          <Skeleton className={css({ h: '5', w: '16', borderRadius: 'full' })} />
-          <Skeleton className={css({ h: '5', w: '20', borderRadius: 'full', hideBelow: 'md' })} />
-        </div>
-      ))}
+    <thead>
+      <tr>
+        <th scope="col">Title</th>
+        <th scope="col">Customer</th>
+        <th scope="col">Priority</th>
+        <th scope="col">Status</th>
+        <th scope="col">Created</th>
+      </tr>
+    </thead>
+  )
+}
+
+const badgeSkeleton = css({ h: 'control.sm', w: '16', borderRadius: 'full' })
+
+/**
+ * First-load placeholder built from the same table and card markup as the real list,
+ * with text-height bars, so rows keep their size when data arrives.
+ */
+function ListSkeleton({ rows }: { rows: number }) {
+  const items = Array.from({ length: rows }, (_, i) => i)
+  return (
+    <Card className={listCard} aria-busy="true" aria-label="Loading tickets">
+      <table className={table} aria-hidden>
+        <TableHead />
+        <tbody>
+          {items.map((i) => (
+            <tr key={i}>
+              <td>
+                <span className={titleText}>
+                  <SkeletonText width={`${55 + ((i * 17) % 35)}%`} />
+                </span>
+              </td>
+              <td>
+                <span className={customer}>
+                  <SkeletonText width="7rem" />
+                  <span className={email}>
+                    <SkeletonText width="10rem" />
+                  </span>
+                </span>
+              </td>
+              <td>
+                <Skeleton className={badgeSkeleton} />
+              </td>
+              <td>
+                <Skeleton className={badgeSkeleton} />
+              </td>
+              <td className={muted}>
+                <SkeletonText width="6rem" />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <ul className={cards} aria-hidden>
+        {items.map((i) => (
+          <li key={i} className={cardItem}>
+            <span className={titleText}>
+              <SkeletonText width={`${55 + ((i * 17) % 35)}%`} />
+            </span>
+            <span className={cardMeta}>
+              <SkeletonText width="12rem" />
+            </span>
+            <span className={cardMeta}>
+              <Skeleton className={badgeSkeleton} />
+              <Skeleton className={badgeSkeleton} />
+            </span>
+          </li>
+        ))}
+      </ul>
     </Card>
   )
 }

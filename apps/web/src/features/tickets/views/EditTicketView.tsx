@@ -3,12 +3,11 @@
 import { FileQuestion } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { css } from 'styled-system/css'
 import { BackLink } from '@/components/layout/BackLink'
 import { PageHeader } from '@/components/layout/PageHeader'
-import { Button, Card, EmptyState, Skeleton, buttonRecipe, useToast } from '@/components/ui'
+import { Button, Card, EmptyState, SkeletonText, buttonRecipe, useToast } from '@/components/ui'
 import { ApiError } from '@/lib/api-client'
-import { TicketForm } from '../components/TicketForm'
+import { TicketForm, TicketFormSkeleton } from '../components/TicketForm'
 import { useTicket, useUpdateTicket } from '../queries'
 
 /** Edit page: loads the ticket, then PATCHes only the changed fields. */
@@ -18,7 +17,14 @@ export function EditTicketView({ id }: { id: string }) {
   const { data: ticket, isPending, error, refetch } = useTicket(id)
   const update = useUpdateTicket(id)
 
-  if (isPending) return <Skeleton className={css({ h: '[480px]', w: 'full', borderRadius: 'lg' })} />
+  if (isPending) {
+    return (
+      <>
+        <PageHeader eyebrow={<BackLink href={`/tickets/${id}`}>Back to ticket</BackLink>} title="Edit ticket" description={<SkeletonText width="16rem" />} />
+        <TicketFormSkeleton />
+      </>
+    )
+  }
 
   if (error) {
     const notFound = error instanceof ApiError && error.isNotFound

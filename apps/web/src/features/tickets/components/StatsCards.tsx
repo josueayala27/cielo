@@ -2,8 +2,8 @@
 
 import { TICKET_STATUSES, type TicketStatus } from '@cielo/contracts'
 import { CircleCheck, CircleDot, Inbox, LoaderCircle, type LucideIcon } from 'lucide-react'
-import { css, cx } from 'styled-system/css'
-import { Button, Card, Skeleton } from '@/components/ui'
+import { css } from 'styled-system/css'
+import { Button, Card, SkeletonText } from '@/components/ui'
 import { STATUS_META } from '../presentation'
 import { useTicketStats } from '../queries'
 
@@ -89,7 +89,7 @@ export function StatsCards({ activeStatus, onSelectStatus }: StatsCardsProps) {
               {label}
               <Icon size={16} className={iconTone[key]} aria-hidden />
             </span>
-            {isPending ? <Skeleton className={css({ h: '8', w: '12' })} /> : <span className={cx(value)}>{count ?? 0}</span>}
+            <span className={value}>{isPending ? <SkeletonText width="2ch" /> : (count ?? 0)}</span>
           </Card>
         )
       })}
