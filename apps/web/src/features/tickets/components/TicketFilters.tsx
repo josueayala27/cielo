@@ -22,12 +22,14 @@ const sortSelect = css({ gridColumn: { base: '1 / -1', sm: 'auto' } })
 
 interface TicketFiltersProps {
   filters: Filters
+  /** Hidden on the board, where every status has its own column. */
+  showStatus?: boolean
   onChange: (changes: Partial<Filters>) => void
   onReset: () => void
 }
 
 /** Search box plus combinable status, priority and sort controls. */
-export function TicketFilters({ filters, onChange, onReset }: TicketFiltersProps) {
+export function TicketFilters({ filters, showStatus = true, onChange, onReset }: TicketFiltersProps) {
   // The input updates instantly; the URL (and the request) only after typing pauses.
   const [search, setSearch] = useState(filters.search)
   const debouncedSearch = useDebouncedValue(search)
@@ -40,7 +42,7 @@ export function TicketFilters({ filters, onChange, onReset }: TicketFiltersProps
   // Keep the box in sync when filters are reset or restored from history.
   useEffect(() => setSearch(filters.search), [filters.search])
 
-  const hasFilters = Boolean(filters.search || filters.status || filters.priority || filters.sort !== 'createdAt:desc')
+  const hasFilters = Boolean(filters.search || (showStatus && filters.status) || filters.priority || filters.sort !== 'createdAt:desc')
 
   return (
     <div className={bar} role="search">
@@ -56,14 +58,16 @@ export function TicketFilters({ filters, onChange, onReset }: TicketFiltersProps
           onChange={(event) => setSearch(event.target.value)}
         />
       </div>
-      <Select aria-label="Filter by status" value={filters.status} onChange={(e) => onChange({ status: e.target.value as TicketStatus | '' })}>
-        <option value="">All statuses</option>
-        {TICKET_STATUSES.map((status) => (
-          <option key={status} value={status}>
-            {STATUS_META[status].label}
-          </option>
-        ))}
-      </Select>
+      {showStatus && (
+        <Select aria-label="Filter by status" value={filters.status} onChange={(e) => onChange({ status: e.target.value as TicketStatus | '' })}>
+          <option value="">All statuses</option>
+          {TICKET_STATUSES.map((status) => (
+            <option key={status} value={status}>
+              {STATUS_META[status].label}
+            </option>
+          ))}
+        </Select>
+      )}
       <Select
         aria-label="Filter by priority"
         value={filters.priority}
