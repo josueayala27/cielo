@@ -1,0 +1,21 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cielo-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-11-01",
+  "account_id": "ac5cf49c8210c923d344d14ea278d49e",
+  "observability": { "enabled": true },
+  "routes": [{ "pattern": "api.cielo.josueayala.me", "custom_domain": true }],
+  "vars": {
+    // Comma-separated origins allowed by CORS. Local dev origins are always allowed.
+    "CORS_ORIGINS": "https://cielo.josueayala.me"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "cielo",
+      "database_id": "479fb11f-34f1-4005-ab7b-680e6776a000",
+      "migrations_dir": "migrations"
+    }
+  ]
+}
