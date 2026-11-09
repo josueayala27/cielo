@@ -12,8 +12,12 @@ import {
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useCallback, useMemo } from 'react'
 
+/** Dashboard layouts: Kanban columns by status, or the paginated table. */
+export type TicketView = 'board' | 'list'
+
 /** Filter state as the UI sees it. Empty string means "any". */
 export interface TicketFilters {
+  view: TicketView
   search: string
   status: TicketStatus | ''
   priority: TicketPriority | ''
@@ -28,6 +32,7 @@ const pick = <T extends string>(value: string | null, allowed: readonly T[]): T 
 export function parseFilters(params: URLSearchParams): TicketFilters {
   const page = Number.parseInt(params.get('page') ?? '', 10)
   return {
+    view: params.get('view') === 'list' ? 'list' : 'board',
     search: params.get('search') ?? '',
     status: pick(params.get('status'), TICKET_STATUSES),
     priority: pick(params.get('priority'), TICKET_PRIORITIES),
@@ -51,6 +56,7 @@ export function toListParams(filters: TicketFilters, limit: number): ListTickets
 /**
  * Filter state stored in the URL query string, so a filtered view can be bookmarked,
  * shared and restored with the back button. Changing any filter resets to page 1.
+ * The board is the default view; `?view=list` switches to the table.
  */
 export function useTicketFilters() {
   const router = useRouter()
@@ -62,6 +68,7 @@ export function useTicketFilters() {
     (changes: Partial<TicketFilters>) => {
       const next: TicketFilters = { ...filters, ...changes, page: changes.page ?? 1 }
       const params = new URLSearchParams()
+      if (next.view === 'list') params.set('view', 'list')
       if (next.search) params.set('search', next.search)
       if (next.status) params.set('status', next.status)
       if (next.priority) params.set('priority', next.priority)
@@ -73,7 +80,11 @@ export function useTicketFilters() {
     [filters, pathname, router],
   )
 
-  const reset = useCallback(() => router.replace(pathname, { scroll: false }), [pathname, router])
+  /** Clears filters but keeps the current view. */
+  const reset = useCallback(
+    () => router.replace(filters.view === 'list' ? `${pathname}?view=list` : pathname, { scroll: false }),
+    [filters.view, pathname, router],
+  )
 
   return { filters, setFilters, reset }
 }

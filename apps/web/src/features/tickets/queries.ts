@@ -1,7 +1,7 @@
 'use client'
 
-import type { CreateTicketInput, ListTicketsParams, Ticket, UpdateTicket } from '@cielo/contracts'
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { CreateTicketInput, ListTicketsParams, Ticket, TicketStatus, UpdateTicket } from '@cielo/contracts'
+import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ticketsApi } from './api'
 
 /**
@@ -12,6 +12,7 @@ export const ticketKeys = {
   all: ['tickets'] as const,
   lists: () => [...ticketKeys.all, 'list'] as const,
   list: (params: ListTicketsParams) => [...ticketKeys.lists(), params] as const,
+  column: (status: TicketStatus, params: ColumnParams) => [...ticketKeys.lists(), 'column', status, params] as const,
   detail: (id: string) => [...ticketKeys.all, 'detail', id] as const,
   stats: () => [...ticketKeys.all, 'stats'] as const,
 }
@@ -21,6 +22,23 @@ export function useTicketList(params: ListTicketsParams) {
   return useQuery({
     queryKey: ticketKeys.list(params),
     queryFn: ({ signal }) => ticketsApi.list(params, signal),
+    placeholderData: keepPreviousData,
+  })
+}
+
+/** Filters shared by every board column; each column adds its own status. */
+export type ColumnParams = Omit<ListTicketsParams, 'status' | 'page'>
+
+/**
+ * One Kanban column: tickets with `status`, loaded page by page ("Load more").
+ * `total` on any page is the column's full count for the current filters.
+ */
+export function useTicketColumn(status: TicketStatus, params: ColumnParams) {
+  return useInfiniteQuery({
+    queryKey: ticketKeys.column(status, params),
+    queryFn: ({ pageParam, signal }) => ticketsApi.list({ ...params, status, page: pageParam }, signal),
+    initialPageParam: 1,
+    getNextPageParam: (last) => (last.page < last.totalPages ? last.page + 1 : undefined),
     placeholderData: keepPreviousData,
   })
 }
