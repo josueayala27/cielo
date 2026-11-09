@@ -7,10 +7,14 @@ import {
   KeyboardSensor,
   MouseSensor,
   TouchSensor,
-  closestCorners,
+  closestCenter,
+  getFirstCollision,
+  pointerWithin,
+  rectIntersection,
   useSensor,
   useSensors,
   type Announcements,
+  type CollisionDetection,
   type DragEndEvent,
   type DragOverEvent,
   type DragStartEvent,
@@ -104,6 +108,23 @@ export function TicketBoard({ params }: { params: ColumnParams }) {
     return TICKET_STATUSES.find((status) => columns[status].some((ticket) => ticket.id === id))
   }
 
+  /**
+   * Collision strategy for several sortable lists: whatever is under the pointer wins;
+   * when that is a column with cards, the closest card inside it. Plain `closestCorners`
+   * lets the tall column boxes compete with the cards and the drop index drifts.
+   */
+  const collisionDetection: CollisionDetection = (args) => {
+    const underPointer = pointerWithin(args)
+    const hits = underPointer.length > 0 ? underPointer : rectIntersection(args)
+    const overId = getFirstCollision(hits, 'id')
+    if (overId == null) return []
+    const status = ticketStatusSchema.safeParse(overId)
+    if (!status.success || columns[status.data].length === 0) return [{ id: overId }]
+    const ids = new Set(columns[status.data].map((ticket) => ticket.id))
+    const closest = closestCenter({ ...args, droppableContainers: args.droppableContainers.filter((c) => ids.has(String(c.id))) })
+    return closest.length > 0 ? [closest[0]!] : [{ id: overId }]
+  }
+
   /** Saves a placement; the card keeps it until lists have refetched (or snaps back on error). */
   async function save(ticket: Ticket, placement: Placement) {
     const server = serverTickets.get(ticket.id)
@@ -193,7 +214,7 @@ export function TicketBoard({ params }: { params: ColumnParams }) {
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCorners}
+      collisionDetection={collisionDetection}
       onDragStart={onDragStart}
       onDragOver={onDragOver}
       onDragEnd={onDragEnd}
