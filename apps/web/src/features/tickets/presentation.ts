@@ -14,3 +14,11 @@ export const PRIORITY_META: Record<TicketPriority, { label: string; tone: BadgeT
   medium: { label: 'Medium', tone: 'accent' },
   high: { label: 'High', tone: 'danger' },
 }
+
+/**
+ * Short, human-friendly ticket reference for cards: `SD-` plus the id's last four
+ * characters (`seed-0007` → `SD-0007`). Display only; links always use the full id.
+ */
+export function ticketRef(id: string): string {
+  return `SD-${id.slice(-4).toUpperCase()}`
+}

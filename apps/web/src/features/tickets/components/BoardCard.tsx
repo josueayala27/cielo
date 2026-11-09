@@ -1,13 +1,14 @@
 'use client'
 
 import { TICKET_STATUSES, type Ticket, type TicketStatus } from '@cielo/contracts'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { css } from 'styled-system/css'
-import { IconButton, Skeleton, SkeletonText } from '@/components/ui'
-import { formatDate } from '@/lib/format'
-import { STATUS_META } from '../presentation'
-import { PriorityBadge } from './TicketBadges'
+import { Avatar, IconButton, Skeleton, SkeletonText } from '@/components/ui'
+import { STATUS_META, ticketRef } from '../presentation'
+import { PriorityIcon } from './TicketGlyphs'
+
+const shortDate = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' })
 
 const card = css({
   position: 'relative',
@@ -15,30 +16,37 @@ const card = css({
   flexDirection: 'column',
   gap: '2',
   p: '3',
-  bg: 'bg.panel',
+  bg: 'bg.elevated',
+  borderWidth: '1px',
+  borderColor: 'border.default',
   borderRadius: 'md',
-  boxShadow: 'card',
   cursor: 'grab',
-  transitionProperty: 'box-shadow, opacity, background',
+  transitionProperty: 'border-color, box-shadow, opacity, transform',
   transitionDuration: 'fast',
-  _hover: { bg: 'bg.elevated' },
-  '&[data-dragging=true]': { opacity: 0.4 },
+  transitionTimingFunction: 'standard',
+  _hover: { borderColor: 'border.strong', boxShadow: 'popover' },
+  _active: { cursor: 'grabbing' },
+  '&[data-dragging=true]': { opacity: 0.35, transform: 'scale(0.98)' },
   '&[data-pending=true]': { opacity: 0.6, cursor: 'progress' },
   '&:hover [data-part=move], &:focus-within [data-part=move]': { opacity: 1 },
 })
+const top = css({ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '2' })
+const ref = css({ fontFamily: 'mono', textStyle: 'ui.xs', color: 'fg.subtle', letterSpacing: '[0.02em]' })
 const title = css({
-  textStyle: 'body.sm',
-  fontWeight: 'medium',
+  textStyle: 'ui.title',
   color: 'fg.default',
   textDecoration: 'none',
+  lineClamp: '2',
   overflowWrap: 'anywhere',
   _hover: { color: 'accent.text' },
   // The whole card is the link's hit area; the move buttons sit above it.
   _after: { content: '""', position: 'absolute', inset: '0', borderRadius: 'md' },
 })
-const meta = css({ textStyle: 'ui.sm', color: 'fg.muted', display: 'flex', gap: '1', minW: '0' })
-const customer = css({ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' })
-const footer = css({ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '2' })
+const description = css({ textStyle: 'ui.sm', fontWeight: 'normal', color: 'fg.muted', lineClamp: '2', overflowWrap: 'anywhere' })
+const footer = css({ display: 'flex', alignItems: 'center', gap: '2', mt: '1', minH: 'control.md' })
+const person = css({ display: 'flex', alignItems: 'center', gap: '1.5', minW: '0', flex: '1', textStyle: 'ui.sm', color: 'fg.muted' })
+const name = css({ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' })
+const date = css({ display: 'inline-flex', alignItems: 'center', gap: '1', textStyle: 'ui.sm', color: 'fg.subtle', whiteSpace: 'nowrap' })
 // Always visible on touch screens; revealed on hover/focus where a pointer can hover.
 const move = css({
   position: 'relative',
@@ -46,9 +54,9 @@ const move = css({
   display: 'flex',
   gap: '0.5',
   opacity: 1,
-  '@media (hover: hover)': { opacity: 0 },
   transitionProperty: 'opacity',
   transitionDuration: 'fast',
+  '@media (hover: hover)': { opacity: 0 },
 })
 
 interface BoardCardProps {
@@ -63,8 +71,8 @@ interface BoardCardProps {
 }
 
 /**
- * Kanban card. Drag it to another column, or use the arrow buttons (keyboard and touch)
- * to move it one column left or right.
+ * Kanban card: reference and priority, title, description preview, customer and date.
+ * Drag it to another column, or use the arrow buttons (keyboard and touch) to move it.
  */
 export function BoardCard({ ticket, status, dragging, pending, onDragStart, onDragEnd, onMove }: BoardCardProps) {
   const index = TICKET_STATUSES.indexOf(status)
@@ -85,14 +93,19 @@ export function BoardCard({ ticket, status, dragging, pending, onDragStart, onDr
       }}
       onDragEnd={onDragEnd}
     >
+      <div className={top}>
+        <span className={ref}>{ticketRef(ticket.id)}</span>
+        <PriorityIcon priority={ticket.priority} />
+      </div>
       <Link href={`/tickets/${ticket.id}`} className={title} draggable={false}>
         {ticket.title}
       </Link>
-      <span className={meta}>
-        <span className={customer}>{ticket.customerName}</span>·<time dateTime={ticket.createdAt}>{formatDate(ticket.createdAt)}</time>
-      </span>
+      <p className={description}>{ticket.description}</p>
       <div className={footer}>
-        <PriorityBadge priority={ticket.priority} />
+        <span className={person}>
+          <Avatar name={ticket.customerName} />
+          <span className={name}>{ticket.customerName}</span>
+        </span>
         <span className={move} data-part="move">
           {previous && (
             <IconButton size="md" icon={ChevronLeft} label={`Move to ${STATUS_META[previous].label}`} disabled={pending} onClick={() => onMove(ticket, previous)} />
@@ -101,6 +114,10 @@ export function BoardCard({ ticket, status, dragging, pending, onDragStart, onDr
             <IconButton size="md" icon={ChevronRight} label={`Move to ${STATUS_META[next].label}`} disabled={pending} onClick={() => onMove(ticket, next)} />
           )}
         </span>
+        <time className={date} dateTime={ticket.createdAt}>
+          <CalendarDays size={12} aria-hidden />
+          {shortDate.format(new Date(ticket.createdAt))}
+        </time>
       </div>
     </li>
   )
@@ -110,14 +127,27 @@ export function BoardCard({ ticket, status, dragging, pending, onDragStart, onDr
 export function BoardCardSkeleton() {
   return (
     <li className={card} aria-hidden>
+      <div className={top}>
+        <span className={ref}>
+          <SkeletonText width="3.5rem" />
+        </span>
+        <Skeleton className={css({ w: '3.5', h: '3.5' })} />
+      </div>
       <span className={title}>
-        <SkeletonText width="80%" />
+        <SkeletonText width="85%" />
       </span>
-      <span className={meta}>
-        <SkeletonText width="55%" />
-      </span>
+      <p className={description}>
+        <SkeletonText />
+        <SkeletonText width="60%" />
+      </p>
       <div className={footer}>
-        <Skeleton className={css({ h: 'control.sm', w: '16', borderRadius: 'full' })} />
+        <span className={person}>
+          <Skeleton className={css({ w: '5', h: '5', borderRadius: 'full' })} />
+          <SkeletonText width="6rem" />
+        </span>
+        <span className={date}>
+          <SkeletonText width="3rem" />
+        </span>
       </div>
     </li>
   )

@@ -1,12 +1,15 @@
 'use client'
 
 import type { Ticket, TicketStatus } from '@cielo/contracts'
+import { Plus } from 'lucide-react'
+import Link from 'next/link'
 import { useState, type DragEvent } from 'react'
 import { css } from 'styled-system/css'
-import { Badge, Button } from '@/components/ui'
+import { Button } from '@/components/ui'
 import { STATUS_META } from '../presentation'
 import { useTicketColumn, type ColumnParams } from '../queries'
 import { BoardCard, BoardCardSkeleton } from './BoardCard'
+import { StatusIcon } from './TicketGlyphs'
 
 /** Cards rendered while a column loads; matches the first page's typical height. */
 const SKELETON_CARDS = 3
@@ -14,20 +17,37 @@ const SKELETON_CARDS = 3
 const column = css({
   display: 'flex',
   flexDirection: 'column',
-  gap: '3',
+  gap: '2',
   minW: '0',
-  p: '3',
-  bg: 'bg.app',
+  p: '2',
+  bg: 'bg.panel',
   borderRadius: 'lg',
-  borderWidth: '1px',
-  borderColor: 'border.default',
   scrollSnapAlign: 'start',
-  transitionProperty: 'border-color, background',
+  transitionProperty: 'box-shadow, background',
   transitionDuration: 'fast',
-  '&[data-drop-target=true]': { borderColor: 'accent.default', bg: 'accent.soft' },
+  '&[data-drop-target=true]': { bg: 'accent.soft', boxShadow: '[inset 0 0 0 1px token(colors.accent.default)]' },
 })
-const head = css({ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '2', px: '1' })
-const count = css({ textStyle: 'ui.md', color: 'fg.subtle', fontVariantNumeric: 'tabular-nums' })
+const head = css({ display: 'flex', alignItems: 'center', gap: '2', h: 'control.lg', px: '1.5' })
+const headTitle = css({ display: 'flex', alignItems: 'center', gap: '2', flex: '1', textStyle: 'ui.title' })
+const count = css({
+  minW: '5',
+  px: '1.5',
+  borderRadius: 'full',
+  bg: 'bg.subtle',
+  textStyle: 'ui.xs',
+  color: 'fg.muted',
+  textAlign: 'center',
+  fontVariantNumeric: 'tabular-nums',
+})
+const addIcon = css({
+  display: 'inline-grid',
+  placeItems: 'center',
+  w: 'control.md',
+  h: 'control.md',
+  borderRadius: 'sm',
+  color: 'fg.subtle',
+  _hover: { bg: 'bg.hover', color: 'fg.default' },
+})
 const list = css({ display: 'flex', flexDirection: 'column', gap: '2', minH: '24' })
 const empty = css({
   display: 'grid',
@@ -42,7 +62,19 @@ const empty = css({
   textAlign: 'center',
   px: '3',
 })
-const errorBox = css({ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '2', textStyle: 'body.sm', color: 'fg.muted' })
+const addRow = css({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '1.5',
+  h: 'control.lg',
+  px: '2',
+  borderRadius: 'sm',
+  textStyle: 'ui.md',
+  color: 'fg.subtle',
+  textDecoration: 'none',
+  _hover: { bg: 'bg.hover', color: 'fg.default' },
+})
+const errorBox = css({ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '2', p: '2', textStyle: 'body.sm', color: 'fg.muted' })
 
 /** A move the board shows before the server confirms it. */
 export interface PendingMove {
@@ -69,7 +101,8 @@ interface BoardColumnProps {
 export function BoardColumn({ status, params, pending, dragging, onDragStart, onDragEnd, onMove }: BoardColumnProps) {
   const query = useTicketColumn(status, params)
   const [dropTarget, setDropTarget] = useState(false)
-  const { label, tone } = STATUS_META[status]
+  const { label } = STATUS_META[status]
+  const newTicketHref = `/tickets/new?status=${status}`
 
   const loaded = query.data?.pages.flatMap((page) => page.items) ?? []
   const movedIn = [...pending.values()].filter((move) => move.to === status && move.ticket.status !== status).map((move) => move.ticket)
@@ -106,12 +139,16 @@ export function BoardColumn({ status, params, pending, dragging, onDragStart, on
       onDrop={onDrop}
     >
       <header className={head}>
-        <h3 id={headingId}>
-          <Badge tone={tone}>{label}</Badge>
+        <h3 id={headingId} className={headTitle}>
+          <StatusIcon status={status} />
+          {label}
+          <span className={count} aria-label={`${total} tickets`}>
+            {query.isPending ? '–' : total}
+          </span>
         </h3>
-        <span className={count} aria-label={`${total} tickets`}>
-          {query.isPending ? '–' : total}
-        </span>
+        <Link href={newTicketHref} className={addIcon} aria-label={`New ${label.toLowerCase()} ticket`} title={`New ${label.toLowerCase()} ticket`}>
+          <Plus size={14} aria-hidden />
+        </Link>
       </header>
 
       {query.isError && !query.data ? (
@@ -144,10 +181,15 @@ export function BoardColumn({ status, params, pending, dragging, onDragStart, on
         </ul>
       )}
 
-      {query.hasNextPage && (
-        <Button size="md" variant="ghost" block loading={query.isFetchingNextPage} onClick={() => query.fetchNextPage()}>
+      {query.hasNextPage ? (
+        <Button size="lg" variant="ghost" block loading={query.isFetchingNextPage} onClick={() => query.fetchNextPage()}>
           Load more
         </Button>
+      ) : (
+        <Link href={newTicketHref} className={addRow}>
+          <Plus size={14} aria-hidden />
+          New ticket
+        </Link>
       )}
     </section>
   )
