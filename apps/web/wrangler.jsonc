@@ -1,0 +1,11 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cielo-web",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2025-11-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "account_id": "ac5cf49c8210c923d344d14ea278d49e",
+  "observability": { "enabled": true },
+  "routes": [{ "pattern": "cielo.josueayala.me", "custom_domain": true }],
+  "assets": { "directory": ".open-next/assets", "binding": "ASSETS" }
+}
