@@ -45,7 +45,7 @@ interface TicketFormProps {
 }
 
 /**
- * Create/edit form. Validates on blur and on submit with the same Zod schema the API
+ * Create/edit form. Validates on submit, then live, with the same Zod schema the API
  * uses, so the browser and the server agree on every rule. Server-side field errors
  * (422) are mapped back onto the matching inputs.
  */
@@ -59,7 +59,9 @@ export function TicketForm({ ticket, submitLabel, onSubmit, onCancel }: TicketFo
   } = useForm<FormValues, unknown, TicketInput>({
     resolver: zodResolver(ticketInputSchema),
     defaultValues: ticket ? pickInput(ticket) : EMPTY,
-    mode: 'onBlur',
+    // First validation on submit, then live while the user fixes errors. Validating on blur
+    // inserts error text that shifts the submit button away from a click already in progress.
+    mode: 'onSubmit',
     reValidateMode: 'onChange',
   })
 
