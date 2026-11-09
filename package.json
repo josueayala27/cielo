@@ -1,0 +1,17 @@
+{
+  "name": "cielo",
+  "private": true,
+  "description": "SupportDesk: support ticket management (Next.js + Hono + Cloudflare D1).",
+  "packageManager": "pnpm@10.34.5",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "dev:api": "pnpm --filter @cielo/api dev",
+    "dev:web": "pnpm --filter @cielo/web dev",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck",
+    "db:migrate:local": "pnpm --filter @cielo/api db:migrate:local",
+    "db:seed:local": "pnpm --filter @cielo/api db:seed:local",
+    "deploy:api": "pnpm --filter @cielo/api deploy",
+    "deploy:web": "pnpm --filter @cielo/web deploy"
+  }
+}

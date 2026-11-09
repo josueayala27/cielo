@@ -1,0 +1,16 @@
+node_modules/
+.pnpm-store/
+dist/
+.next/
+.open-next/
+.wrangler/
+.turbo/
+styled-system/
+coverage/
+*.log
+.env
+.env.*
+!.env.example
+.dev.vars
+.DS_Store
+graphify-out/
