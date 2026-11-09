@@ -72,6 +72,15 @@ export function useUpdateTicket(id: string) {
   return useMutation({ mutationFn: (changes: UpdateTicket) => ticketsApi.update(id, changes), onSuccess: (ticket) => sync(ticket) })
 }
 
+/** Changes a ticket's status from the board. Lists and stats refetch before it resolves. */
+export function useMoveTicket() {
+  const sync = useSyncAfterWrite()
+  return useMutation({
+    mutationFn: ({ id, status }: { id: string; status: TicketStatus }) => ticketsApi.update(id, { status }),
+    onSuccess: (ticket) => sync(ticket),
+  })
+}
+
 export function useDeleteTicket() {
   const queryClient = useQueryClient()
   return useMutation({
