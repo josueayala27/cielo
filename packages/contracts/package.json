@@ -1,0 +1,21 @@
+{
+  "name": "@cielo/contracts",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Ticket domain schemas and API types shared by the API and the web app.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}
