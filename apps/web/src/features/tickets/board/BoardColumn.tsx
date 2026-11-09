@@ -1,17 +1,17 @@
 'use client'
 
 import type { Ticket, TicketStatus } from '@cielo/contracts'
+import { useDroppable } from '@dnd-kit/core'
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { Plus } from 'lucide-react'
 import Link from 'next/link'
-import { useState, type DragEvent } from 'react'
 import { css } from 'styled-system/css'
 import { Button } from '@/components/ui'
 import { STATUS_META } from '../presentation'
-import { useTicketColumn, type ColumnParams } from '../queries'
+import { StatusIcon } from '../components/TicketGlyphs'
 import { BoardCard, BoardCardSkeleton } from './BoardCard'
-import { StatusIcon } from './TicketGlyphs'
 
-/** Cards rendered while a column loads; matches the first page's typical height. */
+/** Cards rendered while a column loads. */
 const SKELETON_CARDS = 3
 
 const column = css({
@@ -25,7 +25,7 @@ const column = css({
   scrollSnapAlign: 'start',
   transitionProperty: 'box-shadow, background',
   transitionDuration: 'fast',
-  '&[data-drop-target=true]': { bg: 'accent.soft', boxShadow: '[inset 0 0 0 1px token(colors.accent.default)]' },
+  '&[data-over=true]': { bg: 'accent.soft', boxShadow: '[inset 0 0 0 1px token(colors.accent.default)]' },
 })
 const head = css({ display: 'flex', alignItems: 'center', gap: '2', h: 'control.lg', px: '1.5' })
 const headTitle = css({ display: 'flex', alignItems: 'center', gap: '2', flex: '1', textStyle: 'ui.title' })
@@ -76,71 +76,41 @@ const addRow = css({
 })
 const errorBox = css({ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '2', p: '2', textStyle: 'body.sm', color: 'fg.muted' })
 
-/** A move the board shows before the server confirms it. */
-export interface PendingMove {
-  ticket: Ticket
-  to: TicketStatus
+/** Loading state of one column's query, passed down from the board. */
+export interface ColumnQueryState {
+  isPending: boolean
+  isError: boolean
+  isRefetching: boolean
+  hasNextPage: boolean
+  isFetchingNextPage: boolean
+  refetch: () => void
+  fetchNextPage: () => void
 }
 
 interface BoardColumnProps {
   status: TicketStatus
-  params: ColumnParams
-  /** Moves in flight, keyed by ticket id. */
-  pending: ReadonlyMap<string, PendingMove>
-  /** Ticket being dragged anywhere on the board. */
-  dragging: Ticket | null
-  onDragStart: (ticket: Ticket) => void
-  onDragEnd: () => void
+  /** Ordered tickets, pending moves already applied. */
+  tickets: Ticket[]
+  /** Count for the current filters, pending moves already applied. */
+  total: number
+  query: ColumnQueryState
+  /** Ids of tickets whose move is being saved. */
+  pendingIds: ReadonlySet<string>
   onMove: (ticket: Ticket, to: TicketStatus) => void
 }
 
-/**
- * One status column. Loads its own tickets (with the board's search/priority/sort),
- * accepts drops from other columns and reflects pending moves optimistically.
- */
-export function BoardColumn({ status, params, pending, dragging, onDragStart, onDragEnd, onMove }: BoardColumnProps) {
-  const query = useTicketColumn(status, params)
-  const [dropTarget, setDropTarget] = useState(false)
+/** One status column: a drop zone and a sortable list of cards. */
+export function BoardColumn({ status, tickets, total, query, pendingIds, onMove }: BoardColumnProps) {
+  const { setNodeRef, isOver } = useDroppable({ id: status, data: { type: 'column', status } })
   const { label } = STATUS_META[status]
   const newTicketHref = `/tickets/new?status=${status}`
-
-  const loaded = query.data?.pages.flatMap((page) => page.items) ?? []
-  const movedIn = [...pending.values()].filter((move) => move.to === status && move.ticket.status !== status).map((move) => move.ticket)
-  const tickets = [...movedIn, ...loaded.filter((ticket) => (pending.get(ticket.id)?.to ?? status) === status)]
-  const movedOut = loaded.length + movedIn.length - tickets.length
-  const total = (query.data?.pages[0]?.total ?? 0) + movedIn.length - movedOut
-
-  const canDrop = dragging !== null && (pending.get(dragging.id)?.to ?? dragging.status) !== status
-
-  function onDragOver(event: DragEvent) {
-    if (!canDrop) return
-    event.preventDefault()
-    event.dataTransfer.dropEffect = 'move'
-    setDropTarget(true)
-  }
-
-  function onDrop(event: DragEvent) {
-    event.preventDefault()
-    setDropTarget(false)
-    if (dragging && canDrop) onMove(dragging, status)
-  }
-
   const headingId = `column-${status}`
 
   return (
-    <section
-      className={column}
-      aria-labelledby={headingId}
-      data-drop-target={dropTarget}
-      onDragOver={onDragOver}
-      onDragLeave={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDropTarget(false)
-      }}
-      onDrop={onDrop}
-    >
+    <section ref={setNodeRef} className={column} aria-labelledby={headingId} data-over={isOver && tickets.length === 0}>
       <header className={head}>
         <h3 id={headingId} className={headTitle}>
-          <StatusIcon status={status} />
+          <StatusIcon status={status} decorative />
           {label}
           <span className={count} aria-label={`${total} tickets`}>
             {query.isPending ? '–' : total}
@@ -151,38 +121,29 @@ export function BoardColumn({ status, params, pending, dragging, onDragStart, on
         </Link>
       </header>
 
-      {query.isError && !query.data ? (
+      {query.isError && tickets.length === 0 ? (
         <div className={errorBox} role="alert">
           Could not load {label.toLowerCase()} tickets.
-          <Button size="md" loading={query.isRefetching} onClick={() => query.refetch()}>
+          <Button size="md" loading={query.isRefetching} onClick={query.refetch}>
             Retry
           </Button>
         </div>
       ) : (
-        <ul className={list} aria-busy={query.isPending || query.isPlaceholderData}>
-          {query.isPending ? (
-            Array.from({ length: SKELETON_CARDS }, (_, i) => <BoardCardSkeleton key={i} />)
-          ) : tickets.length === 0 ? (
-            <li className={empty}>{canDrop ? `Drop to mark as ${label.toLowerCase()}` : 'No tickets'}</li>
-          ) : (
-            tickets.map((ticket) => (
-              <BoardCard
-                key={ticket.id}
-                ticket={ticket}
-                status={status}
-                dragging={dragging?.id === ticket.id}
-                pending={pending.has(ticket.id)}
-                onDragStart={onDragStart}
-                onDragEnd={onDragEnd}
-                onMove={onMove}
-              />
-            ))
-          )}
-        </ul>
+        <SortableContext id={status} items={tickets.map((ticket) => ticket.id)} strategy={verticalListSortingStrategy}>
+          <ul className={list} aria-busy={query.isPending}>
+            {query.isPending ? (
+              Array.from({ length: SKELETON_CARDS }, (_, i) => <BoardCardSkeleton key={i} />)
+            ) : tickets.length === 0 ? (
+              <li className={empty}>{isOver ? `Drop to mark as ${label.toLowerCase()}` : 'No tickets'}</li>
+            ) : (
+              tickets.map((ticket) => <BoardCard key={ticket.id} ticket={ticket} pending={pendingIds.has(ticket.id)} onMove={onMove} />)
+            )}
+          </ul>
+        </SortableContext>
       )}
 
       {query.hasNextPage ? (
-        <Button size="lg" variant="ghost" block loading={query.isFetchingNextPage} onClick={() => query.fetchNextPage()}>
+        <Button size="lg" variant="ghost" block loading={query.isFetchingNextPage} onClick={query.fetchNextPage}>
           Load more
         </Button>
       ) : (
