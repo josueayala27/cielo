@@ -15,7 +15,7 @@ const header = css({
 })
 const inner = css({ display: 'flex', alignItems: 'center', gap: '3', maxW: 'content', mx: 'auto', px: '4', h: '14' })
 const brand = css({ display: 'flex', alignItems: 'center', gap: '2', mr: 'auto', color: 'fg.default', textDecoration: 'none', textStyle: 'ui.title' })
-const mark = css({ display: 'grid', placeItems: 'center', w: '7', h: '7', borderRadius: 'md', background: '[token(gradients.blaze)]', color: 'fg.onAccent' })
+const mark = css({ display: 'grid', placeItems: 'center', w: '7', h: '7', borderRadius: 'md', background: '[token(gradients.horizon)]', color: 'fg.onAccent' })
 const product = css({ color: 'fg.subtle', fontWeight: 'normal', hideBelow: 'sm' })
 
 /** Top bar: brand, theme switch and the primary "New ticket" action. */

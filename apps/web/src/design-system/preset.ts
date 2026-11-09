@@ -3,7 +3,7 @@ import { definePreset } from '@pandacss/dev'
 /**
  * Cielo design system preset.
  *
- * Defines the ink neutral ramp, the orange accent, status hues, radii, control sizes,
+ * Defines the ink neutral ramp, the sky accent, status hues, radii, control sizes,
  * motion tokens, semantic surface/foreground tokens (dark by default, `data-theme=light`
  * for light) and the `ui` / `body` / `display` text styles.
  */
@@ -42,21 +42,23 @@ export const cieloPreset = definePreset({
             900: { value: '#101010' },
             950: { value: '#0a0a0a' },
           },
-          orange: {
-            400: { value: '#fe8224' },
-            500: { value: '#fe5900' },
-            600: { value: '#e54f00' },
-            700: { value: '#c84300' },
-            800: { value: '#97271b' },
+          // Sky: the brand accent ("cielo").
+          sky: {
+            200: { value: '#bae6fd' },
+            300: { value: '#7dd3fc' },
+            400: { value: '#38bdf8' },
+            500: { value: '#0ea5e9' },
+            600: { value: '#0284c7' },
+            700: { value: '#0369a1' },
+            800: { value: '#075985' },
           },
-          corvette: { 200: { value: '#ffd9a8' } },
-          blue: { 400: { value: '#3daaff' }, 500: { value: '#0099ff' } },
+          indigo: { 400: { value: '#818cf8' } },
           green: { 500: { value: '#22c55e' } },
           amber: { 500: { value: '#f59e0b' } },
           red: { 500: { value: '#ef4444' } },
         },
         gradients: {
-          blaze: { value: 'linear-gradient(165deg, #fe8224, #fe5900 50%, #97271b)' },
+          horizon: { value: 'linear-gradient(165deg, #bae6fd, #38bdf8 45%, #0369a1)' },
           // Soft top highlight laid over filled buttons and tiles.
           sheen: { value: 'linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 63.53%)' },
         },
@@ -112,20 +114,21 @@ export const cieloPreset = definePreset({
             default: { value: { base: '{colors.ink.50}', _light: '{colors.ink.900}' } },
             muted: { value: { base: '{colors.ink.300}', _light: '{colors.ink.500}' } },
             subtle: { value: { base: '{colors.ink.400}', _light: '{colors.ink.400}' } },
-            // Ink on the orange accent: white on #fe5900 fails WCAG AA (3.2:1), ink passes (6.3:1).
-            onAccent: { value: '{colors.ink.950}' },
+            // Text on accent fills: ink on sky.400 (dark, 10:1), white on sky.700 (light, 5.9:1).
+            onAccent: { value: { base: '{colors.ink.950}', _light: '{colors.ink.0}' } },
             onColor: { value: '{colors.ink.0}' },
           },
           border: {
             default: { value: { base: '{colors.ink.750}', _light: '{colors.ink.200}' } },
             strong: { value: { base: '{colors.ink.600}', _light: '{colors.ink.300}' } },
           },
+          // Lighter sky on dark surfaces, deeper sky on light ones, so links and fills keep AA contrast.
           accent: {
-            default: { value: '{colors.orange.500}' },
-            hover: { value: '{colors.orange.600}' },
-            pressed: { value: '{colors.orange.700}' },
-            muted: { value: 'color-mix(in srgb, {colors.orange.500} 22%, transparent)' },
-            soft: { value: 'color-mix(in srgb, {colors.orange.500} 13%, transparent)' },
+            default: { value: { base: '{colors.sky.400}', _light: '{colors.sky.700}' } },
+            hover: { value: { base: '{colors.sky.300}', _light: '{colors.sky.800}' } },
+            pressed: { value: { base: '{colors.sky.500}', _light: '{colors.sky.800}' } },
+            muted: { value: 'color-mix(in srgb, {colors.sky.500} 24%, transparent)' },
+            soft: { value: 'color-mix(in srgb, {colors.sky.500} 14%, transparent)' },
           },
           success: {
             default: { value: '{colors.green.500}' },
@@ -140,8 +143,8 @@ export const cieloPreset = definePreset({
             muted: { value: 'color-mix(in srgb, {colors.red.500} 18%, transparent)' },
           },
           info: {
-            default: { value: '{colors.blue.400}' },
-            muted: { value: 'color-mix(in srgb, {colors.blue.400} 18%, transparent)' },
+            default: { value: '{colors.indigo.400}' },
+            muted: { value: 'color-mix(in srgb, {colors.indigo.400} 20%, transparent)' },
           },
         },
         gradients: {
