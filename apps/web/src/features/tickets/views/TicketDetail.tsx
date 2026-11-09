@@ -3,10 +3,8 @@
 import { TICKET_STATUSES, type Ticket, type TicketStatus } from '@cielo/contracts'
 import { FileQuestion, Pencil, WifiOff } from 'lucide-react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { css } from 'styled-system/css'
-import { BackLink } from '@/components/layout/BackLink'
-import { PageHeader } from '@/components/layout/PageHeader'
+import { css, cva } from 'styled-system/css'
+import { ViewFrame, useLeaveView, type Presentation } from '@/components/layout/ViewFrame'
 import { Button, Card, EmptyState, Select, Skeleton, SkeletonText, buttonRecipe, useToast } from '@/components/ui'
 import { ApiError } from '@/lib/api-client'
 import { formatDateTime } from '@/lib/format'
@@ -15,56 +13,74 @@ import { PriorityBadge, StatusBadge } from '../components/TicketBadges'
 import { STATUS_META } from '../presentation'
 import { useTicket, useUpdateTicket } from '../queries'
 
-const layout = css({ display: 'grid', gap: '4', gridTemplateColumns: { base: '1fr', md: '2fr 1fr' }, alignItems: 'start' })
+const layoutRecipe = cva({
+  base: { display: 'grid', gap: '4', alignItems: 'start' },
+  variants: {
+    presentation: {
+      page: { gridTemplateColumns: { base: '1fr', md: '2fr 1fr' } },
+      drawer: { gridTemplateColumns: '1fr' },
+    },
+  },
+})
 const body = css({ p: { base: '4', md: '6' }, display: 'flex', flexDirection: 'column', gap: '3' })
 const label = css({ textStyle: 'ui.sm', color: 'fg.subtle' })
 const description = css({ textStyle: 'body.md', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' })
 const facts = css({ p: '4', display: 'flex', flexDirection: 'column', gap: '4', '& dd': { mt: '1', overflowWrap: 'anywhere' } })
 const badges = css({ display: 'flex', gap: '2', flexWrap: 'wrap', mb: '2' })
 
-/** Ticket detail page with quick status change, edit and delete. */
-export function TicketDetail({ id }: { id: string }) {
-  const router = useRouter()
-  const { data: ticket, isPending, error, refetch } = useTicket(id)
+interface TicketDetailProps {
+  id: string
+  presentation?: Presentation
+}
 
-  if (isPending) return <DetailSkeleton />
+const BACK = { href: '/', label: 'All tickets' }
+
+/** Ticket detail with quick status change, edit and delete. */
+export function TicketDetail({ id, presentation = 'page' }: TicketDetailProps) {
+  const leave = useLeaveView(presentation)
+  const { data: ticket, isPending, error, refetch } = useTicket(id)
+  const layout = layoutRecipe({ presentation })
+
+  if (isPending) return <DetailSkeleton presentation={presentation} layout={layout} />
 
   if (error) {
     const notFound = error instanceof ApiError && error.isNotFound
     return (
-      <Card>
-        <EmptyState
-          tone={notFound ? 'neutral' : 'danger'}
-          icon={notFound ? FileQuestion : WifiOff}
-          title={notFound ? 'Ticket not found' : 'Could not load this ticket'}
-          description={notFound ? 'It may have been deleted, or the link is wrong.' : error.message}
-          actions={
-            <>
-              {!notFound && <Button onClick={() => refetch()}>Try again</Button>}
-              <Link href="/" className={buttonRecipe()}>
-                Back to tickets
-              </Link>
-            </>
-          }
-        />
-      </Card>
+      <ViewFrame presentation={presentation} title="Ticket" back={BACK}>
+        <Card>
+          <EmptyState
+            tone={notFound ? 'neutral' : 'danger'}
+            icon={notFound ? FileQuestion : WifiOff}
+            title={notFound ? 'Ticket not found' : 'Could not load this ticket'}
+            description={notFound ? 'It may have been deleted, or the link is wrong.' : error.message}
+            actions={
+              <>
+                {!notFound && <Button onClick={() => refetch()}>Try again</Button>}
+                <Link href="/" className={buttonRecipe()}>
+                  Back to tickets
+                </Link>
+              </>
+            }
+          />
+        </Card>
+      </ViewFrame>
     )
   }
 
   return (
-    <>
-      <PageHeader
-        eyebrow={<BackLink href="/">All tickets</BackLink>}
-        title={ticket.title}
-        actions={
-          <>
-            <DeleteTicketButton ticket={ticket} onDeleted={() => router.push('/')} />
-            <Link href={`/tickets/${ticket.id}/edit`} className={buttonRecipe({ variant: 'primary' })}>
-              <Pencil size={14} aria-hidden /> Edit
-            </Link>
-          </>
-        }
-      />
+    <ViewFrame
+      presentation={presentation}
+      title={ticket.title}
+      back={BACK}
+      actions={
+        <>
+          <DeleteTicketButton ticket={ticket} onDeleted={() => leave('/')} />
+          <Link href={`/tickets/${ticket.id}/edit`} className={buttonRecipe({ variant: 'primary' })}>
+            <Pencil size={14} aria-hidden /> Edit
+          </Link>
+        </>
+      }
+    >
       <div className={layout}>
         <Card className={body}>
           <div className={badges}>
@@ -110,7 +126,7 @@ export function TicketDetail({ id }: { id: string }) {
           </dl>
         </Card>
       </div>
-    </>
+    </ViewFrame>
   )
 }
 
@@ -141,16 +157,17 @@ function StatusSelect({ ticket }: { ticket: Ticket }) {
 
 const badgeSkeleton = css({ h: 'control.sm', w: '20', borderRadius: 'full' })
 
-/** Same header, cards and rows as the loaded page, with text-height bars. */
-function DetailSkeleton() {
+/** Same frame, cards and rows as the loaded ticket, with text-height bars. */
+function DetailSkeleton({ presentation, layout }: { presentation: Presentation; layout: string }) {
   return (
-    <div aria-busy="true" aria-label="Loading ticket" className={css({ display: 'contents' })}>
-      <PageHeader
-        eyebrow={<BackLink href="/">All tickets</BackLink>}
-        title={<SkeletonText width="min(28rem, 80%)" />}
-        actions={<Skeleton className={css({ h: 'control.lg', w: '40', borderRadius: 'sm' })} />}
-      />
-      <div className={layout}>
+    <ViewFrame
+      presentation={presentation}
+      title="Loading ticket…"
+      heading={<SkeletonText width="min(28rem, 80%)" />}
+      back={BACK}
+      actions={<Skeleton className={css({ h: 'control.lg', w: '40', borderRadius: 'sm' })} />}
+    >
+      <div className={layout} aria-busy="true" aria-label="Loading ticket">
         <Card className={body}>
           <div className={badges}>
             <Skeleton className={badgeSkeleton} />
@@ -181,6 +198,6 @@ function DetailSkeleton() {
           </dl>
         </Card>
       </div>
-    </div>
+    </ViewFrame>
   )
 }
