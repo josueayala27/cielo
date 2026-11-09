@@ -37,7 +37,7 @@ export function TicketsDashboard() {
     <>
       <PageHeader title="Support tickets" description="Track customer requests from open to resolved." />
       <StatsCards
-        activeStatus={isBoard ? '' : filters.status}
+        activeStatus={isBoard ? null : filters.status}
         // The board already shows every status, so picking one switches to the filtered list.
         onSelectStatus={(status) => setFilters({ status, view: status ? 'list' : filters.view })}
       />

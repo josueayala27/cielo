@@ -1,11 +1,12 @@
 'use client'
 
 import { TICKET_STATUSES, type TicketStatus } from '@cielo/contracts'
-import { CircleCheck, CircleDot, Inbox, LoaderCircle, type LucideIcon } from 'lucide-react'
+import { Inbox } from 'lucide-react'
 import { css } from 'styled-system/css'
 import { Button, Card, SkeletonText } from '@/components/ui'
 import { STATUS_META } from '../presentation'
 import { useTicketStats } from '../queries'
+import { StatusIcon } from './TicketGlyphs'
 
 const grid = css({ display: 'grid', gridTemplateColumns: { base: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: '3' })
 const tile = css({
@@ -22,23 +23,12 @@ const tile = css({
 })
 const tileHead = css({ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'fg.muted', textStyle: 'ui.md' })
 const value = css({ textStyle: 'display.md', fontVariantNumeric: 'tabular-nums', color: 'fg.default' })
-const iconTone: Record<'total' | TicketStatus, string> = {
-  total: css({ color: 'accent.text' }),
-  open: css({ color: 'info.default' }),
-  in_progress: css({ color: 'warning.default' }),
-  resolved: css({ color: 'success.default' }),
-}
-const ICONS: Record<'total' | TicketStatus, LucideIcon> = {
-  total: Inbox,
-  open: CircleDot,
-  in_progress: LoaderCircle,
-  resolved: CircleCheck,
-}
+const totalIcon = css({ color: 'accent.text' })
 const errorRow = css({ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '3', p: '4', color: 'fg.muted' })
 
 interface StatsCardsProps {
-  /** Currently filtered status, highlighted. */
-  activeStatus: TicketStatus | ''
+  /** Currently filtered status (`''` = all), highlighted; `null` highlights nothing. */
+  activeStatus: TicketStatus | '' | null
   /** Called with the status to filter by, or `''` for all tickets. */
   onSelectStatus: (status: TicketStatus | '') => void
 }
@@ -69,7 +59,6 @@ export function StatsCards({ activeStatus, onSelectStatus }: StatsCardsProps) {
   return (
     <section aria-label="Ticket statistics" className={grid}>
       {tiles.map(({ key, label, count, status }) => {
-        const Icon = ICONS[key]
         return (
           <Card
             key={key}
@@ -87,7 +76,7 @@ export function StatsCards({ activeStatus, onSelectStatus }: StatsCardsProps) {
           >
             <span className={tileHead}>
               {label}
-              <Icon size={16} className={iconTone[key]} aria-hidden />
+              {status ? <StatusIcon status={status} size={16} /> : <Inbox size={16} className={totalIcon} aria-hidden />}
             </span>
             <span className={value}>{isPending ? <SkeletonText width="2ch" /> : (count ?? 0)}</span>
           </Card>
