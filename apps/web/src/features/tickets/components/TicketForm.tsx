@@ -6,6 +6,7 @@ import {
   ticketInputSchema,
   type Ticket,
   type TicketInput,
+  type TicketStatus,
 } from '@cielo/contracts'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Save } from 'lucide-react'
@@ -35,6 +36,8 @@ const formError = css({ p: '3', borderRadius: 'md', bg: 'danger.muted', color: '
 interface TicketFormProps {
   /** Ticket being edited; omit to create. */
   ticket?: Ticket
+  /** Initial status for a new ticket, e.g. from the board column it was created in. */
+  defaultStatus?: TicketStatus
   submitLabel: string
   /**
    * Persists the values. For edits only the changed fields are passed.
@@ -49,7 +52,7 @@ interface TicketFormProps {
  * uses, so the browser and the server agree on every rule. Server-side field errors
  * (422) are mapped back onto the matching inputs.
  */
-export function TicketForm({ ticket, submitLabel, onSubmit, onCancel }: TicketFormProps) {
+export function TicketForm({ ticket, defaultStatus, submitLabel, onSubmit, onCancel }: TicketFormProps) {
   const {
     register,
     handleSubmit,
@@ -58,7 +61,7 @@ export function TicketForm({ ticket, submitLabel, onSubmit, onCancel }: TicketFo
     formState: { errors, isSubmitting, dirtyFields },
   } = useForm<FormValues, unknown, TicketInput>({
     resolver: zodResolver(ticketInputSchema),
-    defaultValues: ticket ? pickInput(ticket) : EMPTY,
+    defaultValues: ticket ? pickInput(ticket) : { ...EMPTY, status: defaultStatus ?? EMPTY.status },
     // First validation on submit, then live while the user fixes errors. Validating on blur
     // inserts error text that shifts the submit button away from a click already in progress.
     mode: 'onSubmit',
