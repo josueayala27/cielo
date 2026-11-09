@@ -15,3 +15,5 @@ coverage/
 .DS_Store
 graphify-out/
 !.env.production
+next-env.d.ts
+*.tsbuildinfo

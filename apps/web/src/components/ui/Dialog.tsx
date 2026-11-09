@@ -14,8 +14,8 @@ const overlay = css({
 const content = css({
   position: 'fixed',
   zIndex: 'modal',
-  top: '1/2',
-  left: '1/2',
+  top: '[50%]',
+  left: '[50%]',
   translate: '[-50% -50%]',
   w: '[calc(100vw - 32px)]',
   maxW: '[420px]',

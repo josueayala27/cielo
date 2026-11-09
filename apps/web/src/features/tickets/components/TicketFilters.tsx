@@ -16,7 +16,7 @@ const bar = css({
   alignItems: 'center',
 })
 const searchWrap = css({ position: 'relative', gridColumn: { base: '1 / -1', md: 'auto' } })
-const searchIcon = css({ position: 'absolute', left: '3', top: '1/2', translate: '[0 -50%]', color: 'fg.subtle', pointerEvents: 'none' })
+const searchIcon = css({ position: 'absolute', left: '3', top: '[50%]', translate: '[0 -50%]', color: 'fg.subtle', pointerEvents: 'none' })
 const searchInput = css({ pl: '9' })
 const sortSelect = css({ gridColumn: { base: '1 / -1', sm: 'auto' } })
 

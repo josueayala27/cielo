@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   // The shared contracts package ships TypeScript source.
   transpilePackages: ['@cielo/contracts'],
   poweredByHeader: false,
+  agentRules: false,
 }
 
 export default nextConfig
