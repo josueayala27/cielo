@@ -86,7 +86,7 @@ export function TicketDetail({ id }: { id: string }) {
               <dt className={label}>Customer</dt>
               <dd>{ticket.customerName}</dd>
               <dd>
-                <a href={`mailto:${ticket.customerEmail}`} className={css({ color: 'accent.default' })}>
+                <a href={`mailto:${ticket.customerEmail}`} className={css({ color: 'accent.text' })}>
                   {ticket.customerEmail}
                 </a>
               </dd>

@@ -31,7 +31,7 @@ const titleLink = css({
   color: 'fg.default',
   fontWeight: 'medium',
   textDecoration: 'none',
-  _hover: { color: 'accent.default' },
+  _hover: { color: 'accent.text' },
   // Stretch the link over the whole row so the row is clickable but keeps one tab stop.
   _after: { content: '""', position: 'absolute', inset: '0' },
 })

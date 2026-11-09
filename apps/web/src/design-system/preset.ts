@@ -52,6 +52,8 @@ export const cieloPreset = definePreset({
             700: { value: '#0369a1' },
             800: { value: '#075985' },
           },
+          // Deep blue for accent fills: white labels pass WCAG AA on all three steps.
+          blue: { 600: { value: '#2563eb' }, 700: { value: '#1d4ed8' }, 800: { value: '#1e40af' } },
           indigo: { 400: { value: '#818cf8' } },
           green: { 500: { value: '#22c55e' } },
           amber: { 500: { value: '#f59e0b' } },
@@ -114,21 +116,23 @@ export const cieloPreset = definePreset({
             default: { value: { base: '{colors.ink.50}', _light: '{colors.ink.900}' } },
             muted: { value: { base: '{colors.ink.300}', _light: '{colors.ink.500}' } },
             subtle: { value: { base: '{colors.ink.400}', _light: '{colors.ink.400}' } },
-            // Text on accent fills: ink on sky.400 (dark, 10:1), white on sky.700 (light, 5.9:1).
-            onAccent: { value: { base: '{colors.ink.950}', _light: '{colors.ink.0}' } },
+            // White on accent fills in both themes (5.2:1 on blue.600).
+            onAccent: { value: '{colors.ink.0}' },
             onColor: { value: '{colors.ink.0}' },
           },
           border: {
             default: { value: { base: '{colors.ink.750}', _light: '{colors.ink.200}' } },
             strong: { value: { base: '{colors.ink.600}', _light: '{colors.ink.300}' } },
           },
-          // Lighter sky on dark surfaces, deeper sky on light ones, so links and fills keep AA contrast.
+          // `default`/`hover`/`pressed` are fills (buttons, borders, focus ring) with white labels.
+          // `text` is for links and accent-coloured text: light sky on dark surfaces, deep blue on light.
           accent: {
-            default: { value: { base: '{colors.sky.400}', _light: '{colors.sky.700}' } },
-            hover: { value: { base: '{colors.sky.300}', _light: '{colors.sky.800}' } },
-            pressed: { value: { base: '{colors.sky.500}', _light: '{colors.sky.800}' } },
-            muted: { value: 'color-mix(in srgb, {colors.sky.500} 24%, transparent)' },
-            soft: { value: 'color-mix(in srgb, {colors.sky.500} 14%, transparent)' },
+            default: { value: '{colors.blue.600}' },
+            hover: { value: '{colors.blue.700}' },
+            pressed: { value: '{colors.blue.800}' },
+            text: { value: { base: '{colors.sky.400}', _light: '{colors.blue.700}' } },
+            muted: { value: 'color-mix(in srgb, {colors.blue.600} 28%, transparent)' },
+            soft: { value: 'color-mix(in srgb, {colors.blue.600} 16%, transparent)' },
           },
           success: {
             default: { value: '{colors.green.500}' },

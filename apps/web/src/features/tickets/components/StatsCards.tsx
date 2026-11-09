@@ -23,7 +23,7 @@ const tile = css({
 const tileHead = css({ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'fg.muted', textStyle: 'ui.md' })
 const value = css({ textStyle: 'display.md', fontVariantNumeric: 'tabular-nums', color: 'fg.default' })
 const iconTone: Record<'total' | TicketStatus, string> = {
-  total: css({ color: 'accent.default' }),
+  total: css({ color: 'accent.text' }),
   open: css({ color: 'info.default' }),
   in_progress: css({ color: 'warning.default' }),
   resolved: css({ color: 'success.default' }),
