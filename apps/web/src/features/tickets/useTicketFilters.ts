@@ -25,6 +25,9 @@ export interface TicketFilters {
   page: number
 }
 
+/** Sorts a user can pick in the list view. */
+const LIST_SORTS = TICKET_SORTS.filter((sort) => sort !== 'position:asc')
+
 const pick = <T extends string>(value: string | null, allowed: readonly T[]): T | '' =>
   allowed.includes(value as T) ? (value as T) : ''
 
@@ -36,7 +39,8 @@ export function parseFilters(params: URLSearchParams): TicketFilters {
     search: params.get('search') ?? '',
     status: pick(params.get('status'), TICKET_STATUSES),
     priority: pick(params.get('priority'), TICKET_PRIORITIES),
-    sort: pick(params.get('sort'), TICKET_SORTS) || 'createdAt:desc',
+    // `position:asc` is the board's order, not a user-selectable list sort.
+    sort: pick(params.get('sort'), LIST_SORTS) || 'createdAt:desc',
     page: Number.isFinite(page) && page > 0 ? page : 1,
   }
 }

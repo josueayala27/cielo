@@ -6,9 +6,9 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { SegmentedControl, Spinner } from '@/components/ui'
 import { Pagination } from '../components/Pagination'
 import { StatsCards } from '../components/StatsCards'
-import { TicketBoard } from '../components/TicketBoard'
 import { TicketFilters } from '../components/TicketFilters'
 import { TicketList } from '../components/TicketList'
+import { TicketBoard } from '../board/TicketBoard'
 import { useTicketList, type ColumnParams } from '../queries'
 import { toListParams, useTicketFilters, type TicketFilters as Filters, type TicketView } from '../useTicketFilters'
 
@@ -49,17 +49,17 @@ export function TicketsDashboard() {
           </h2>
           <SegmentedControl<TicketView> label="Layout" value={filters.view} options={VIEW_OPTIONS} onChange={(view) => setFilters({ view })} />
         </div>
-        <TicketFilters filters={filters} showStatus={!isBoard} onChange={setFilters} onReset={reset} />
+        <TicketFilters filters={filters} layout={filters.view} onChange={setFilters} onReset={reset} />
         {isBoard ? <TicketBoard params={toBoardParams(filters)} /> : <TicketListSection filters={filters} setFilters={setFilters} reset={reset} />}
       </section>
     </>
   )
 }
 
-/** Board columns share every filter except status (each column is a status). */
+/** Board columns share search and priority; status is the column and order is manual. */
 function toBoardParams(filters: Filters): ColumnParams {
   const { status: _status, page: _page, ...rest } = toListParams(filters, BOARD_PAGE_SIZE)
-  return rest
+  return { ...rest, sort: 'position:asc' }
 }
 
 interface TicketListSectionProps {

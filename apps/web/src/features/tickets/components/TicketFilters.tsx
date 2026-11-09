@@ -7,7 +7,7 @@ import { css } from 'styled-system/css'
 import { Button, Input, Select } from '@/components/ui'
 import { useDebouncedValue } from '@/lib/useDebouncedValue'
 import { PRIORITY_META, STATUS_META } from '../presentation'
-import type { TicketFilters as Filters } from '../useTicketFilters'
+import type { TicketFilters as Filters, TicketView } from '../useTicketFilters'
 
 const bar = css({
   display: 'grid',
@@ -22,14 +22,17 @@ const sortSelect = css({ gridColumn: { base: '1 / -1', sm: 'auto' } })
 
 interface TicketFiltersProps {
   filters: Filters
-  /** Hidden on the board, where every status has its own column. */
-  showStatus?: boolean
+  /**
+   * The board hides status (each column is one) and sort (cards keep their manual order).
+   */
+  layout: TicketView
   onChange: (changes: Partial<Filters>) => void
   onReset: () => void
 }
 
 /** Search box plus combinable status, priority and sort controls. */
-export function TicketFilters({ filters, showStatus = true, onChange, onReset }: TicketFiltersProps) {
+export function TicketFilters({ filters, layout, onChange, onReset }: TicketFiltersProps) {
+  const isList = layout === 'list'
   // The input updates instantly; the URL (and the request) only after typing pauses.
   const [search, setSearch] = useState(filters.search)
   const debouncedSearch = useDebouncedValue(search)
@@ -42,7 +45,7 @@ export function TicketFilters({ filters, showStatus = true, onChange, onReset }:
   // Keep the box in sync when filters are reset or restored from history.
   useEffect(() => setSearch(filters.search), [filters.search])
 
-  const hasFilters = Boolean(filters.search || (showStatus && filters.status) || filters.priority || filters.sort !== 'createdAt:desc')
+  const hasFilters = Boolean(filters.search || filters.priority || (isList && (filters.status || filters.sort !== 'createdAt:desc')))
 
   return (
     <div className={bar} role="search">
@@ -58,7 +61,7 @@ export function TicketFilters({ filters, showStatus = true, onChange, onReset }:
           onChange={(event) => setSearch(event.target.value)}
         />
       </div>
-      {showStatus && (
+      {isList && (
         <Select aria-label="Filter by status" value={filters.status} onChange={(e) => onChange({ status: e.target.value as TicketStatus | '' })}>
           <option value="">All statuses</option>
           {TICKET_STATUSES.map((status) => (
@@ -80,10 +83,12 @@ export function TicketFilters({ filters, showStatus = true, onChange, onReset }:
           </option>
         ))}
       </Select>
-      <Select className={sortSelect} aria-label="Sort by creation date" value={filters.sort} onChange={(e) => onChange({ sort: e.target.value as TicketSort })}>
-        <option value="createdAt:desc">Newest first</option>
-        <option value="createdAt:asc">Oldest first</option>
-      </Select>
+      {isList && (
+        <Select className={sortSelect} aria-label="Sort by creation date" value={filters.sort} onChange={(e) => onChange({ sort: e.target.value as TicketSort })}>
+          <option value="createdAt:desc">Newest first</option>
+          <option value="createdAt:asc">Oldest first</option>
+        </Select>
+      )}
       {hasFilters && (
         <Button variant="ghost" size="xl" icon={X} onClick={onReset} className={css({ gridColumn: { base: '1 / -1', md: 'auto' } })}>
           Clear
