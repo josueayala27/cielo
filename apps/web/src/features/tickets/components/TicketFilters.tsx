@@ -35,7 +35,6 @@ export function TicketFilters({ filters, onChange, onReset }: TicketFiltersProps
   useEffect(() => {
     if (debouncedSearch !== filters.search) onChange({ search: debouncedSearch })
     // Only react to the user's typing, not to `filters` changing elsewhere.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearch])
 
   // Keep the box in sync when filters are reset or restored from history.
