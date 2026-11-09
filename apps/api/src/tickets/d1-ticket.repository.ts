@@ -10,6 +10,7 @@ interface TicketRow {
   customer_email: string
   priority: TicketPriority
   status: TicketStatus
+  position: number
   created_at: string
   updated_at: string
 }
@@ -22,8 +23,16 @@ const COLUMN_BY_FIELD = {
   customerEmail: 'customer_email',
   priority: 'priority',
   status: 'status',
+  position: 'position',
   updatedAt: 'updated_at',
 } as const satisfies Record<keyof UpdateTicket | 'updatedAt', keyof TicketRow>
+
+/** ORDER BY clause per sort option; `id` breaks ties so pages never overlap. Never built from input. */
+const ORDER_BY: Record<TicketListOptions['sort'], string> = {
+  'createdAt:desc': 'created_at DESC, id DESC',
+  'createdAt:asc': 'created_at ASC, id ASC',
+  'position:asc': 'position ASC, id ASC',
+}
 
 /** Converts a database row to the API shape. */
 function toTicket(row: TicketRow): Ticket {
@@ -35,6 +44,7 @@ function toTicket(row: TicketRow): Ticket {
     customerEmail: row.customer_email,
     priority: row.priority,
     status: row.status,
+    position: Number(row.position),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }
@@ -77,13 +87,12 @@ export class D1TicketRepository implements TicketRepository {
 
   async list(options: TicketListOptions): Promise<TicketListResult> {
     const where = buildWhere(options)
-    const direction = options.sort === 'createdAt:asc' ? 'ASC' : 'DESC'
     const offset = (options.page - 1) * options.limit
 
-    // Both statements run in one round trip; `id` breaks ties so pages never overlap.
+    // Both statements run in one round trip.
     const [page, count] = await this.db.batch([
       this.db
-        .prepare(`SELECT * FROM tickets ${where.sql} ORDER BY created_at ${direction}, id ${direction} LIMIT ? OFFSET ?`)
+        .prepare(`SELECT * FROM tickets ${where.sql} ORDER BY ${ORDER_BY[options.sort]} LIMIT ? OFFSET ?`)
         .bind(...where.params, options.limit, offset),
       this.db.prepare(`SELECT COUNT(*) AS total FROM tickets ${where.sql}`).bind(...where.params),
     ])
@@ -101,8 +110,8 @@ export class D1TicketRepository implements TicketRepository {
   async insert(ticket: Ticket): Promise<void> {
     await this.db
       .prepare(
-        `INSERT INTO tickets (id, title, description, customer_name, customer_email, priority, status, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO tickets (id, title, description, customer_name, customer_email, priority, status, position, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .bind(
         ticket.id,
@@ -112,6 +121,7 @@ export class D1TicketRepository implements TicketRepository {
         ticket.customerEmail,
         ticket.priority,
         ticket.status,
+        ticket.position,
         ticket.createdAt,
         ticket.updatedAt,
       )

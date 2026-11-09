@@ -49,10 +49,14 @@ export class TicketService {
     return ticket
   }
 
-  /** Creates a ticket with a generated id and matching `createdAt`/`updatedAt`. */
+  /**
+   * Creates a ticket with a generated id and matching `createdAt`/`updatedAt`. Its board
+   * position is the negative creation time, so newer tickets sit above older ones.
+   */
   async create(input: CreateTicket): Promise<Ticket> {
-    const now = this.clock.now().toISOString()
-    const ticket: Ticket = { ...input, id: this.generateId(), createdAt: now, updatedAt: now }
+    const now = this.clock.now()
+    const iso = now.toISOString()
+    const ticket: Ticket = { ...input, id: this.generateId(), position: -now.getTime(), createdAt: iso, updatedAt: iso }
     await this.repository.insert(ticket)
     return ticket
   }

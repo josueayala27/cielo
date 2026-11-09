@@ -3,7 +3,7 @@ import type { TicketListOptions, TicketListResult, TicketRepository } from '../s
 
 /**
  * Test double for {@link TicketRepository} that mirrors the D1 adapter's semantics
- * (case-insensitive search on title/customer, AND-combined filters, createdAt+id ordering).
+ * (case-insensitive search on title/customer, AND-combined filters, createdAt/position + id ordering).
  */
 export class InMemoryTicketRepository implements TicketRepository {
   private readonly rows = new Map<string, Ticket>()
@@ -14,12 +14,15 @@ export class InMemoryTicketRepository implements TicketRepository {
 
   async list({ search, status, priority, sort, page, limit }: TicketListOptions): Promise<TicketListResult> {
     const term = search?.toLowerCase()
-    const direction = sort === 'createdAt:asc' ? 1 : -1
+    const compare = (a: Ticket, b: Ticket) =>
+      sort === 'position:asc'
+        ? a.position - b.position || a.id.localeCompare(b.id)
+        : (sort === 'createdAt:asc' ? 1 : -1) * (a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id))
     const matches = [...this.rows.values()]
       .filter((t) => !term || t.title.toLowerCase().includes(term) || t.customerName.toLowerCase().includes(term))
       .filter((t) => !status || t.status === status)
       .filter((t) => !priority || t.priority === priority)
-      .sort((a, b) => direction * (a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id)))
+      .sort(compare)
     const start = (page - 1) * limit
     return { items: matches.slice(start, start + limit), total: matches.length }
   }

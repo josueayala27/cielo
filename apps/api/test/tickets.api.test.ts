@@ -17,7 +17,7 @@ const validTicket = {
 /** Builds a seeded ticket created `minutes` after a fixed base date. */
 function seedTicket(id: string, minutes: number, overrides: Partial<Ticket> = {}): Ticket {
   const at = new Date(Date.UTC(2026, 0, 1) + minutes * 60_000).toISOString()
-  return { ...validTicket, priority: 'low', status: 'open', id, customerEmail: 'a@b.co', createdAt: at, updatedAt: at, ...overrides } as Ticket
+  return { ...validTicket, priority: 'low', status: 'open', id, position: -minutes, customerEmail: 'a@b.co', createdAt: at, updatedAt: at, ...overrides } as Ticket
 }
 
 let app: ReturnType<typeof createApp>
@@ -50,6 +50,7 @@ describe('POST /api/tickets', () => {
     expect(ticket).toMatchObject({ ...validTicket, customerEmail: 'ana@example.com', status: 'open' })
     expect(ticket.id).toBeTruthy()
     expect(ticket.createdAt).toBe(ticket.updatedAt)
+    expect(ticket.position).toBe(-Date.parse(ticket.createdAt))
     expect(res.headers.get('Location')).toBe(`/api/tickets/${ticket.id}`)
   })
 
@@ -107,6 +108,14 @@ describe('GET/PATCH/DELETE /api/tickets/:id', () => {
     const ticket = (await res.json()) as Ticket
     expect(ticket).toMatchObject({ id: 't1', status: 'resolved', title: 'Login broken' })
     expect(ticket.updatedAt > ticket.createdAt).toBe(true)
+  })
+
+  it('reorders a ticket on the board with a fractional position', async () => {
+    // Board order is t3 (-3), t2 (-2), t1 (-1); drop t1 between t3 and t2.
+    const res = await call('/api/tickets/t1', json('PATCH', { position: -2.5 }))
+    expect(res.status).toBe(200)
+    const page = (await (await call('/api/tickets?sort=position:asc')).json()) as TicketPage
+    expect(page.items.map((t) => t.id)).toEqual(['t3', 't1', 't2'])
   })
 
   it('rejects an empty or unknown-field patch', async () => {
