@@ -6,8 +6,11 @@ export const TICKET_PRIORITIES = ['low', 'medium', 'high'] as const
 /** Ticket lifecycle states, in workflow order. */
 export const TICKET_STATUSES = ['open', 'in_progress', 'resolved'] as const
 
-/** Sort orders accepted by the listing endpoint. */
-export const TICKET_SORTS = ['createdAt:desc', 'createdAt:asc'] as const
+/**
+ * Sort orders accepted by the listing endpoint. `position:asc` is the board's manual
+ * order (drag and drop); the two `createdAt` orders are the ones the spec requires.
+ */
+export const TICKET_SORTS = ['createdAt:desc', 'createdAt:asc', 'position:asc'] as const
 
 export const ticketPrioritySchema = z.enum(TICKET_PRIORITIES)
 export const ticketStatusSchema = z.enum(TICKET_STATUSES)
@@ -54,9 +57,17 @@ export const createTicketSchema = ticketInputSchema.extend({
   status: ticketStatusSchema.default('open'),
 })
 
-/** Body of `PATCH /api/tickets/:id`: any subset of the writable fields, but at least one. */
+/**
+ * Manual board rank. Lower comes first; clients place a card between two others by
+ * sending the midpoint of their positions (fractional ranking), so only the moved
+ * ticket is written.
+ */
+export const ticketPositionSchema = z.number({ error: 'Position must be a number' }).finite({ error: 'Position must be finite' })
+
+/** Body of `PATCH /api/tickets/:id`: any subset of the writable fields (plus `position`), but at least one. */
 export const updateTicketSchema = ticketInputSchema
   .partial()
+  .extend({ position: ticketPositionSchema.optional() })
   .strict()
   .refine((value) => Object.keys(value).length > 0, { error: 'Provide at least one field to update' })
 
@@ -68,6 +79,8 @@ export type UpdateTicket = z.infer<typeof updateTicketSchema>
 /** A persisted ticket as returned by the API. Dates are ISO-8601 strings. */
 export interface Ticket extends TicketInput {
   id: string
+  /** Manual board order (see {@link ticketPositionSchema}). New tickets go to the top. */
+  position: number
   createdAt: string
   updatedAt: string
 }

@@ -44,6 +44,11 @@ describe('updateTicketSchema', () => {
     expect(updateTicketSchema.parse({ status: 'resolved' })).toEqual({ status: 'resolved' })
   })
 
+  it('accepts a board move with status and position', () => {
+    expect(updateTicketSchema.parse({ status: 'open', position: -12.5 })).toEqual({ status: 'open', position: -12.5 })
+    expect(updateTicketSchema.safeParse({ position: Number.POSITIVE_INFINITY }).success).toBe(false)
+  })
+
   it('rejects empty bodies and unknown fields', () => {
     expect(updateTicketSchema.safeParse({}).success).toBe(false)
     expect(updateTicketSchema.safeParse({ createdAt: 'x' }).success).toBe(false)
@@ -63,6 +68,7 @@ describe('listTicketsQuerySchema', () => {
     expect(listTicketsQuerySchema.parse({ page: '3', limit: '25' })).toMatchObject({ page: 3, limit: 25 })
     expect(listTicketsQuerySchema.safeParse({ page: '0' }).success).toBe(false)
     expect(listTicketsQuerySchema.safeParse({ limit: '101' }).success).toBe(false)
+    expect(listTicketsQuerySchema.parse({ sort: 'position:asc' }).sort).toBe('position:asc')
     expect(listTicketsQuerySchema.safeParse({ sort: 'title:asc' }).success).toBe(false)
   })
 })
